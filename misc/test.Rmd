@@ -1,0 +1,17 @@
+---
+title: "Test"
+output: html_notebook
+---
+
+Vanlig text skriver du här, utanför kodblocken.
+
+```{r}
+x <- c(1, 2, 3, 4, 5)
+mean(x)
+```
+
+Nytt kodblock: Cmd+Option+I. Kör ett block: Cmd+Shift+Enter eller ▶-knappen.
+
+```{r}
+plot(x, x^2, type = "b")
+```
