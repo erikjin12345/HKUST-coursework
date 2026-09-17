@@ -8,6 +8,7 @@ Varje kurs har en egen mapp. Inuti den ligger:
 
 - `code/` – notebooks, skript och data som hör till koden
 - `pdf/` – slides, problem sets och lösningar
+- `CHEATSHEET.md` – formelsamling per kurs med sidhänvisningar till föreläsningsanteckningarna
 
 ```
 FINA 2203/
