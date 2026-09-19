@@ -13,7 +13,7 @@ Varje kurs har en egen mapp. Inuti den ligger:
 ```
 FINA 2203/
   code/
-MATH 4423/
+MATH 4432/
   code/MATH-4432-Statistical-Machine-Learning/   (submodul: kursens officiella tutorial-repo)
 MATH 4511/
   code/   MATH 4511.ipynb, MATH_4511_functions.py
@@ -26,7 +26,7 @@ misc/     småtester
 
 ## Submodul
 
-MATH 4423 använder kursens repo som submodul. Efter en ny klon:
+MATH 4432 använder kursens repo som submodul. Efter en ny klon:
 
 ```
 git submodule update --init
