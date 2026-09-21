@@ -2,6 +2,100 @@
 
 Sidhänvisningar "(s. N)" avser `pdf/MATH4511_L1.pdf`. Facitsiffror från föreläsningens exempel står i tabeller så att egna beräkningar kan verifieras.
 
+## Konventioner: vilken ränta används när
+
+Det här avsnittet samlar reglerna för hur räntor kvoteras och omvandlas i kursen. Grundprincipen: **diskonteringsfaktorn `B(t;T)` är basen, räntor är bara olika sätt att skriva den.** Alla no-arbitrage-argument görs med `B`, aldrig med kvoterade räntor direkt.
+
+### Arbetsgång som alltid fungerar
+
+1. Läs av konventionen för varje given ränta (noten i uppgiften vinner alltid över tabellerna nedan).
+2. Omvandla allt till diskonteringsfaktorer `B(t;T)` eller periodräntor `R_[t,T] = 1/B(t;T) − 1`.
+3. Gör all prissättning, replikering och kostnadsberäkning i de enheterna.
+4. Konvertera tillbaka till en kvoterad årsränta bara om frågan uttryckligen ber om det, och då i den konvention frågan anger.
+
+### Default-konvention per räntetyp (när uppgiften inte säger annat)
+
+| Ränta | Symbol | Default-kvotering | Tillväxt av 1 under `τ` år | `B(t;t+τ)` | Var i anteckningen |
+|---|---|---|---|---|---|
+| Spot rate | `s_t`, `L_[0,t]` | annual effective | `(1+s)^τ` | `(1+s)^(−τ)` | s. 19, 25, Ex 4, 14, 15, 21, 23 |
+| LIBOR | `L` | annual nominal, enkel ränta, `m` perioder/år | `1 + L·τ = 1 + L/m` | `1/(1+L/m)` | s. 53, Ex 10 |
+| Yield på obligation | `i` / `i^(m)` / `j` | `i` annual effective, `i^(m)` nominell, `j = i^(m)/m` per period | `(1+i)^τ = (1+j)^(mτ)` | `(1+i)^(−τ)` | s. 7–10 |
+| Forward rate (kvoterad) | `f_[T1,T2]` | samma konvention som spoträntorna i uppgiften (oftast annual effective) | `(1+f)^(T2−T1)` | – | s. 75, Ex 15, 21 |
+| Forward rate i FRA-betalning | `K_[T1,T2]` | **periodränta**, ej annualiserad | `1 + K` över hela `[T1,T2]` | `B(0;T2)/B(0;T1) = 1/(1+K)` | s. 72–75, Ex 20–22, 24 |
+| Kontinuerlig ränta | `r`, "compounded continuously" | årstakt, `m = ∞` | `e^(rτ)` | `e^(−rτ)` | s. 21, Ex 11, 17 |
+
+Ordet **effective** betyder ränta-på-ränta, `(1+r)^t`; motsatsen är **nominal**, `(1+r/m)^(mt)`. Ordet säger inget om huruvida talet avser ett år eller en period. **Annual** betyder per år; **periodränta** betyder tillväxten över just den aktuella perioden.
+
+### Från kvoterad ränta till periodränta över `τ` år
+
+| Kvotering | Periodränta `R` över `τ` år | Exempel med 2 %, `τ = 0.5` |
+|---|---|---|
+| annual effective | `(1+r)^τ − 1` | `(1.02)^0.5 − 1 = 0.00995` |
+| annual nominal, `m` perioder (LIBOR) | `r·τ = r/m` | `0.02/2 = 0.01000` |
+| kontinuerlig | `e^(rτ) − 1` | `e^0.01 − 1 = 0.01005` |
+
+Talen ligger nära varandra men facit skiljer på dem. Kontinuerlig ränta är gränsfallet `m → ∞` av nominell ränta, därför heter den "annual nominal rate compounded continuously".
+
+### Vilka räntor går in i kassaflöden
+
+- **Periodräntor** (`R_[·]`, `K_[·]`) multipliceras direkt med belopp: FRN-kupong `F·R_[T_{k−1},T_k]`, FRA-betalning `N(R − K)`, blankad obligation med face `N(1+K)`.
+- **Kvoterade årsräntor** (`s`, `L`, `f`, `i`) ska alltid först omvandlas till `B` eller `R`. Multiplicera aldrig `N` med en annualiserad ränta.
+- I facit till Ex 21 (s. 90–91) räknas först `f_[1,1.5] = 0.022003` (annual effective, det kvoterade svaret) och sedan `K_[1,1.5] = (1.022003)^0.5 − 1 = 0.010942` som sätts in i `N(1+K)`. Båda är "effective", den ena per år och den andra per halvår.
+
+### Annualisering av en periodränta
+
+Exponenten är `1/(antal år)`, aldrig `1/(antal månader)`:
+
+```
+(1 + f)^τ = 1 + K      ⇒   f = (1 + K)^(1/τ) − 1        τ i år
+```
+
+18-månaders forward: `(1+f)^1.5`, inte `(1+f)^18`. Kedja periodräntor med `(1+R_[0,T1])(1+K_[T1,T2]) = 1+R_[0,T2]` och annualisera först när hela `1+R_[0,T]` är känd (Ex 15b, s. 78).
+
+### Spread på floating rate notes
+
+Hur spreaden läggs på beror på hur uppgiften formulerar kupongregeln:
+
+| Formulering | Kupong per period | Annuiteten som ska prissättas separat |
+|---|---|---|
+| `R_[T_{k−1},T_k] + spread`, med `R` periodränta (T2 Problem 12) | `F·(R_period + spread)` | `F·spread` per period |
+| `LIBOR + spread`, nominell med `m` perioder | `F·(L + spread)/m` | `F·spread/m` per period |
+| `spot rate + spread` på årsnivå, annual effective (Ex 9, årliga kuponger) | `F·((1 + s + spread)^(1/m) − 1)` | ≈ `F·spread/m` per period |
+
+Pris = par för FRN-delen + nuvärdet av spread-annuiteten (Ex 9b s. 52, T2 Problem 12b). Exempel ur T2 Problem 12a: 6-månaders spot 2 % annual effective, spread 0.15 %, `F = 100` ⇒ första kupongen `(0.00995 + 0.0015)·100 = 1.14505`.
+
+### Tidsförskjutna tabeller
+
+När uppgiften ger nya spoträntor "efter 6 månader" mäts löptiderna i den nya tabellen från den nya tidpunkten. Perioden `[1, 1.5]` i absolut tid nås vid `t = 0.5` med 6-månaders- och 1-årsräntorna, inte med 1- och 1.5-årsräntorna (Ex 21, s. 90):
+
+```
+(1 + s_0.5(0.5))^0.5 · (1 + f*)^0.5 = (1 + s_0.5(1))^1
+```
+
+### Teckenkonventioner i facit
+
+- "Cost" eller `V_0`: negativt tal = pengar in. `V_0 = −7.5` i Ex 23 betyder att strategin ger 7.5 idag.
+- "Cash flow" eller "profit": positivt tal = pengar in. Samma strategi ger `+7.5`.
+- Välj en konvention per uppgift och håll den genom hela räkningen; blanda inte kostnad vid `t = 0` med payoff vid `t = T` i samma summa (de är samma vinst vid olika tidpunkter).
+
+### Undantag i anteckningen att känna igen
+
+| Ställe | Avvikelse |
+|---|---|
+| Ex 7 (s. 42) | Räntan kallas LIBOR men är "quoted as annual effective" ⇒ rot, inte division |
+| Ex 10 (s. 52) | LIBOR nominell semi-annual ⇒ kupong `F·L/2`, men diskonteringen skrivs `(1+L/2)^(1/2)` |
+| Ex 11, 14 (s. 64, 70) | "Spot rate" kontinuerlig resp. annual effective, står i texten |
+| Ex 17 (s. 82) | Forward rates "annual nominal compounded continuously" ⇒ `e^(−f)` per år |
+| Ex 5 (s. 31) | Yield nominell kvartalsvis ⇒ `D_Mod = D_Mac/(1 + i^(4)/4)` |
+
+### Checklista före varje uppgift
+
+1. Vilken konvention har varje given ränta? (Står det i noten?)
+2. Hur lång är perioden `τ` i år?
+3. Vad är `B(t;T)` för varje relevant datum?
+4. Är det tal jag sätter in i `N(...)` eller `F(...)` en periodränta?
+5. Ska svaret kvoteras, och i så fall i vilken konvention?
+
 ## 0. Notation
 
 | Symbol | Betydelse |
