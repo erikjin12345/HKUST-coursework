@@ -1,0 +1,455 @@
+\documentclass[11pt]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+% Figures referenced in this document (upload to the Overleaf project root):
+%   college_scatter_matrix.png  college_boxplots.png  college_elite_boxplot.png  college_hist.png
+%   boston_scatter.png  crime_corr.png  boston_hist.png
+%   table3.4.png  auto_fit_line.png  binned_mean_res.png  auto_diag_simple.png
+%   auto_scatter_matrix.png  diag_base.png  diag_loglog.png
+
+\title{MATH 4432 -- Assignment 1}
+\author{Erik Jin}
+\date{September 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Chapter 2}
+
+\subsection*{Exercise 1}
+
+The guiding principle is the bias--variance decomposition of the expected test error at a point $x_0$,
+\begin{equation*}
+  \mathbb{E}\bigl[(y_0 - \hat f(x_0))^2\bigr]
+  = \operatorname{Var}\bigl(\hat f(x_0)\bigr) + \bigl[\operatorname{Bias}\bigl(\hat f(x_0)\bigr)\bigr]^2 + \sigma_\varepsilon^2 .
+\end{equation*}
+A flexible method lowers the bias but raises the variance; an inflexible method does the opposite. Which one wins depends on which term dominates in each scenario.
+
+\paragraph{(a) $n$ extremely large, $p$ small.}
+Flexible is better. With many observations per parameter the variance of a flexible fit is small, because the estimate is averaged over a large sample and there is little risk of fitting noise. The extra flexibility can then be spent on reducing bias, i.e.\ on capturing the true shape of $f$.
+
+\paragraph{(b) $p$ extremely large, $n$ small.}
+Inflexible is better. A flexible method with more parameters than observations can reproduce the training data almost exactly, including its noise, so its predictions change drastically from one sample to the next. The variance term explodes and the model does not generalise. An inflexible method accepts some bias in exchange for a much smaller variance.
+
+\paragraph{(c) Highly non-linear relationship.}
+Flexible is better. An inflexible method such as a linear model cannot represent a strongly non-linear $f$ no matter how much data it sees, so its bias stays large. A flexible method can follow the curvature and reduce the bias, and with a reasonable sample size the increase in variance is smaller than the reduction in bias.
+
+\paragraph{(d) $\operatorname{Var}(\varepsilon)$ extremely high.}
+Inflexible is better. When the noise is large, a flexible method will fit part of that noise, which has no predictive value, and its variance grows with $\sigma_\varepsilon^2$. An inflexible method smooths over the noise. The irreducible error $\sigma_\varepsilon^2$ is the same for both methods, but the flexible method adds a large variance term on top of it.
+
+\subsection*{Exercise 3}
+% Bias--variance sketch and explanation to be added.
+
+\subsection*{Exercise 8 -- \texttt{College}}
+
+\paragraph{(a)--(b) Loading the data.}
+The data were loaded with \texttt{load\_data('College')} from the \texttt{ISLP} package (equivalently \texttt{pd.read\_csv('College.csv', index\_col=0)}), which places the college names in the index so that \texttt{Private} is the first data column. The data set has 777 rows and 18 variables.
+
+\paragraph{(c) Numerical summary.}
+\texttt{college.describe()} gives the count, mean, standard deviation, minimum, quartiles and maximum of each quantitative variable. A few values that matter for the rest of the analysis: the median number of applications is 1\,558 but the maximum is 48\,094; the median out-of-state tuition is 9\,990 with a range from 2\,340 to 21\,700; the median graduation rate is 65\%, and the maximum is 118\%, which is impossible and indicates a data error (see (h)).
+
+\paragraph{(d) Scatterplot matrix.}
+Figure~\ref{fig:college-scatter} shows the pairwise scatterplots of \texttt{Top10perc}, \texttt{Apps} and \texttt{Enroll}. \texttt{Apps} and \texttt{Enroll} are strongly and approximately linearly related (a college enrols a roughly constant fraction of its applicants), and both are heavily right-skewed with a handful of very large institutions. \texttt{Top10perc} is only weakly related to size: highly selective colleges exist at all sizes.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{college_scatter_matrix.png}
+  \caption{Scatterplot matrix of \texttt{Top10perc}, \texttt{Apps} and \texttt{Enroll}.}
+  \label{fig:college-scatter}
+\end{figure}
+
+\paragraph{(e) Out-of-state tuition versus \texttt{Private}.}
+Figure~\ref{fig:college-box} (left) shows that private colleges charge much more: the median out-of-state tuition is 11\,200 for private versus 6\,609 for public institutions, and the interquartile ranges barely overlap (public $[5\,366, 7\,844]$, private $[9\,100, 13\,970]$).
+
+\paragraph{(f) The \texttt{Elite} variable.}
+\texttt{Elite} is \texttt{Yes} when more than 50\% of the incoming class comes from the top 10\% of their high-school class. Only 78 of the 777 colleges are elite (699 are not), and 65 of the 78 are private. The right panel of Figure~\ref{fig:college-box} shows that elite colleges charge far more: median out-of-state tuition 16\,950 versus 9\,556, with the elite interquartile range $[12\,219, 18\,412]$ lying almost entirely above the non-elite one.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{college_boxplots.png}
+  \caption{Out-of-state tuition by \texttt{Private} (left) and by \texttt{Elite} (right).}
+  \label{fig:college-box}
+\end{figure}
+
+\paragraph{(g) Histograms.}
+Figure~\ref{fig:college-hist} shows histograms of four quantitative variables with different numbers of bins. \texttt{Apps} and \texttt{Enroll} are extremely right-skewed and are best viewed on a log scale; \texttt{Outstate} is bimodal, reflecting the public/private split; \texttt{Grad.Rate} is roughly symmetric around 65\% apart from the single value above 100.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{college_hist.png}
+  \caption{Histograms of selected quantitative variables with varying bin counts.}
+  \label{fig:college-hist}
+\end{figure}
+
+\paragraph{(h) Further exploration.}
+During validation one college was found to have \texttt{Grad.Rate} $= 118\%$; this value was capped at 100 before further analysis. The main findings from the exploration are:
+\begin{enumerate}
+  \item \textbf{Private versus public is the dominant split.} Private colleges are more expensive (median \texttt{Outstate} 11\,200 vs.\ 6\,609, \texttt{Room.Board} 4\,400 vs.\ 3\,708), spend more per student (\texttt{Expend} 8\,954 vs.\ 6\,717), have smaller classes (\texttt{S.F.Ratio} 12.7 vs.\ 17.3) and graduate more of their students (\texttt{Grad.Rate} 69\% vs.\ 55\%). Two variables go the other way: public institutions have a higher share of faculty with a Ph.D.\ (78.5\% vs.\ 73\%) and a higher yield, the share of admitted students who enrol (44\% vs.\ 37\%).
+  \item \textbf{Elite colleges form a small, distinct group.} Beyond tuition, they spend roughly twice as much per student (median \texttt{Expend} 15\,944 vs.\ 8\,086), have a higher graduation rate (84.5\% vs.\ 64\%) and admit about half as large a share of applicants (acceptance rate 0.53 vs.\ 0.79).
+  \item \textbf{Graduation rate is associated with money and selectivity.} Its strongest correlations are with \texttt{Outstate} (0.57), \texttt{Top10perc} (0.49), \texttt{perc.alumni} (0.49), \texttt{Top25perc} (0.48) and \texttt{Room.Board} (0.42); \texttt{S.F.Ratio} is negatively correlated ($-0.31$). No single variable explains more than a third of the variance, and \texttt{perc.alumni} is as likely a consequence of a high graduation rate as a cause.
+  \item \textbf{Size variables are heavily skewed.} For \texttt{Apps}, \texttt{Accept}, \texttt{Enroll}, \texttt{F.Undergrad} and \texttt{P.Undergrad} the mean is about twice the median, driven by a few large public universities (maximum \texttt{Apps} 48\,094 against a median of 1\,558). Means are therefore poor summaries of these variables and log transformations are advisable before modelling.
+\end{enumerate}
+
+\subsection*{Exercise 10 -- \texttt{Boston}}
+
+\paragraph{(a)--(b) The data.}
+The \texttt{Boston} data set was loaded with \texttt{load\_data('Boston')}. It has 506 rows and 13 columns. Each row is a census tract in the Boston area (1970 census). The columns are tract-level characteristics: per-capita crime rate (\texttt{crim}), proportion of large residential lots (\texttt{zn}), proportion of non-retail business acres (\texttt{indus}), a Charles River indicator (\texttt{chas}), nitrogen-oxide concentration (\texttt{nox}), average number of rooms (\texttt{rm}), proportion of old units (\texttt{age}), distance to employment centres (\texttt{dis}), highway accessibility index (\texttt{rad}), property-tax rate (\texttt{tax}), pupil--teacher ratio (\texttt{ptratio}), share of lower-status population (\texttt{lstat}) and median home value in \$1000s (\texttt{medv}).
+
+\paragraph{(c) Pairwise scatterplots.}
+Figure~\ref{fig:boston-scatter} shows four pairwise scatterplots chosen among the most strongly related pairs (the largest absolute correlations in the data are \texttt{rad}--\texttt{tax} 0.91, \texttt{indus}--\texttt{nox} 0.76, \texttt{nox}--\texttt{dis} $-0.77$, \texttt{age}--\texttt{dis} $-0.75$ and \texttt{lstat}--\texttt{medv} $-0.74$).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{boston_scatter.png}
+  \caption{Pairwise scatterplots of selected predictors. Point size is proportional to the number of tracts sharing the same coordinates.}
+  \label{fig:boston-scatter}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{\texttt{rad} vs.\ \texttt{tax}.} Most tracts lie in a band with \texttt{rad} between 1 and 8 and \texttt{tax} between 190 and 470, plus one compact cluster at $\texttt{rad} = 24$, $\texttt{tax} = 666$ containing 132 of the 506 tracts with identical values. These are the tracts inside the city of Boston, which share one tax rate and one accessibility index. The correlation of 0.91 is driven almost entirely by this cluster rather than by a trend within the remaining data. Five tracts at $\texttt{tax} = 711$, $\texttt{rad} = 4$ are also unusual. The two variables essentially encode the same city/suburb dichotomy, so including both in a regression invites multicollinearity.
+  \item \textbf{\texttt{medv} vs.\ \texttt{lstat}.} The clearest relationship: a higher share of lower-status population goes with lower home values. The curve is steep for small \texttt{lstat} and flattens beyond 20\%, so a straight line fits poorly (correlation $-0.74$ for \texttt{lstat}, $-0.82$ for $\log$\texttt{lstat}). A row of 16 tracts at $\texttt{medv} = 50$ shows that home values are top-coded at 50.
+  \item \textbf{\texttt{nox} vs.\ \texttt{indus}.} Positive overall (correlation 0.76), but two-part: below 15\% industrial land the trend is roughly linear with little scatter, while at $\texttt{indus} = 18.1$ a vertical bar of the same 132 inner-city tracts spans \texttt{nox} from 0.53 to 0.77. Within the city, \texttt{indus} has no explanatory power for pollution; the association holds between suburbs only.
+  \item \textbf{\texttt{ptratio} vs.\ \texttt{medv}.} A moderate negative relationship (correlation $-0.51$). The points form horizontal bands because \texttt{ptratio} is set per school district; the band at 20.2 alone holds 140 tracts. Low-value tracts ($\texttt{medv} < 15$) lie almost exclusively at or above 20.2, whereas high-value tracts spread down to 13. The large vertical spread at any given ratio shows that school resources alone predict home value poorly.
+\end{itemize}
+Three of the four plots are dominated by the same 132 inner-city tracts, which form identical clusters in \texttt{rad}, \texttt{tax} and \texttt{indus}. Several pairwise correlations in this data set therefore reflect a single underlying urban/suburban dichotomy rather than continuous relationships.
+
+\paragraph{(d) Predictors associated with crime.}
+Figure~\ref{fig:crime-corr} shows the correlation of every predictor with \texttt{crim}. The strongest positive associations are with \texttt{rad} (0.63) and \texttt{tax} (0.58), followed by \texttt{lstat} (0.46), \texttt{nox} (0.42) and \texttt{indus} (0.41). The strongest negative ones are with \texttt{medv} ($-0.39$) and \texttt{dis} ($-0.38$). All of these point to the same fact as in (c): crime is concentrated in the inner-city cluster, which has high \texttt{rad} and \texttt{tax}, high pollution and industry, low home values and short distances to employment centres. The relationships are not linear: \texttt{crim} is close to zero in most tracts and takes large values only inside the $\texttt{tax} = 666$ cluster, so a correlation coefficient understates how sharply crime separates the two groups.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{crime_corr.png}
+  \caption{Correlation of each predictor with per-capita crime rate.}
+  \label{fig:crime-corr}
+\end{figure}
+
+\paragraph{(e) Crime rate, tax rate and pupil--teacher ratio.}
+Table~\ref{tab:boston-e} summarises the three predictors and Figure~\ref{fig:boston-e} shows their histograms. ``Particularly high'' means something different in each case.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{boston_hist.png}
+  \caption{Histograms of \texttt{crim}, \texttt{tax} and \texttt{ptratio}.}
+  \label{fig:boston-e}
+\end{figure}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lrrrrrrr}
+    \toprule
+    Predictor & Min & $Q_1$ & Median & Mean & $Q_3$ & Max & IQR outliers \\
+    \midrule
+    \texttt{crim}    & 0.01  & 0.08  & 0.26  & 3.61  & 3.68  & 88.98 & 66 (13\%) \\
+    \texttt{tax}     & 187   & 279   & 330   & 408.2 & 666   & 711   & 0 \\
+    \texttt{ptratio} & 12.60 & 17.40 & 19.05 & 18.46 & 20.20 & 22.00 & 0 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Summary statistics ($n = 506$). IQR outliers are observations above $Q_3 + 1.5\,\mathrm{IQR}$.}
+  \label{tab:boston-e}
+\end{table}
+
+\emph{Crime rate.} The range is extreme, from 0.01 to 88.98, almost four orders of magnitude. The distribution is heavily right-skewed: the mean (3.61) is fourteen times the median (0.26), and the histogram is a single bar at zero with a long thin tail. Most tracts are safe, but 66 (13\%) exceed the IQR threshold of 9.07, 54 exceed 10 and 11 exceed 25. Some tracts do have particularly high crime rates, and they are genuine outliers.
+
+\emph{Tax rate.} The range 187--711 is wide but the distribution is bimodal rather than skewed: most tracts lie between 200 and 470, then there is a gap, and a single bar at 666 holds 132 tracts (26\%), plus five at 711. No observation is an IQR outlier because the 666 cluster is so large that it \emph{is} the third quartile. The right reading is not ``a few outliers'' but ``a quarter of the tracts share one unusually high tax rate''.
+
+\emph{Pupil--teacher ratio.} The range 12.6--22.0 is narrow, less than a factor of two, with no IQR outliers. The variable is discrete (46 distinct values) because it is set per school district; the bar at 20.2 holds 140 tracts and 201 tracts (40\%) have a ratio of 20 or more. No tract stands out individually, but a large share sits at the upper end, with only two tracts at the maximum of 22.
+
+\emph{Connection.} The three groups largely coincide: every one of the 54 tracts with $\texttt{crim} > 10$ has $\texttt{tax} = 666$, and most of them have $\texttt{ptratio} = 20.2$. These are the inner-city tracts identified in (c).
+
+\paragraph{(f) Tracts bounding the Charles River.}
+$\sum \texttt{chas} = 35$ tracts bound the river (6.9\% of the data).
+
+\paragraph{(g) Median pupil--teacher ratio.}
+The median of \texttt{ptratio} is 19.05.
+
+\paragraph{(h) Lowest median home value.}
+The minimum of \texttt{medv} is 5.0 (thousand dollars) and it is attained by two tracts, rows 398 and 405, rather than one. Since 5.0 is also the floor of the variable in the same way that 50.0 is a ceiling, the tie is most likely an artefact of censoring. Table~\ref{tab:boston-h} gives their predictor values with the overall median and the percentile rank of each value.
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Predictor & Tract 398 & Tract 405 & Overall median & Pct.~398 & Pct.~405 \\
+    \midrule
+    crim    & 38.35 & 67.92 & 0.26  & 98.8 & 99.6 \\
+    zn      & 0     & 0     & 0     & 73.5 & 73.5 \\
+    indus   & 18.1  & 18.1  & 9.69  & 88.7 & 88.7 \\
+    chas    & 0     & 0     & 0     & 93.1 & 93.1 \\
+    nox     & 0.693 & 0.693 & 0.538 & 85.8 & 85.8 \\
+    rm      & 5.45  & 5.68  & 6.21  & 7.7  & 13.6 \\
+    age     & 100   & 100   & 77.5  & 100  & 100 \\
+    dis     & 1.49  & 1.43  & 3.21  & 5.7  & 4.2 \\
+    rad     & 24    & 24    & 5     & 100  & 100 \\
+    tax     & 666   & 666   & 330   & 99.0 & 99.0 \\
+    ptratio & 20.2  & 20.2  & 19.05 & 88.9 & 88.9 \\
+    lstat   & 30.59 & 22.98 & 11.36 & 97.8 & 89.9 \\
+    medv    & 5.0   & 5.0   & 21.2  & 0.4  & 0.4 \\
+    \bottomrule
+  \end{tabular}
+  \caption{The two tracts with the lowest \texttt{medv}. The percentile columns give the share of all 506 tracts with a value less than or equal to the tract's value.}
+  \label{tab:boston-h}
+\end{table}
+
+On every predictor set at the town or district level the two tracts are identical and match the inner-city cluster: $\texttt{indus} = 18.1$, $\texttt{rad} = 24$, $\texttt{tax} = 666$, $\texttt{ptratio} = 20.2$, $\texttt{nox} = 0.693$, $\texttt{zn} = \texttt{chas} = 0$. Both have $\texttt{age} = 100$, so every dwelling predates 1940, both lie close to the employment centres (\texttt{dis} about 1.4 against a median of 3.2, bottom 5\%), and both have small dwellings (\texttt{rm} in the bottom 8--14\%). They differ in how they reach the bottom price: tract 405 is extreme mainly in crime (\texttt{crim} $= 67.9$, third-highest in the data, almost twice tract 398's 38.4), tract 398 mainly in socio-economic status (\texttt{lstat} $= 30.6$, top 2\%, versus 23.0, top 10\%). Every variable usually associated with low home value is at or near its extreme, so the two tracts are not anomalies but the most concentrated instances of the inner-city profile: old, dense, poor and crime-affected housing near the centre.
+
+\paragraph{(i) Tracts with many rooms.}
+64 tracts average more than seven rooms per dwelling and 13 more than eight. The 13 large-dwelling tracts are the most affluent in the data: median \texttt{medv} 48.3 against 21.2 overall, with five of the thirteen at the ceiling of 50; \texttt{lstat} 4.1 against 11.4; \texttt{ptratio} 17.4 against 19.05, with none above 20.2. Crime is uniformly low (11 of 13 below 1), although the group median of 0.52 slightly exceeds the overall median because the overall distribution is so concentrated near zero. Tax rate, pollution and age of housing are close to their overall medians, so large dwellings are not concentrated in new, low-tax or low-pollution suburbs. One tract has more than eight rooms but $\texttt{medv} = 21.9$, showing that dwelling size alone does not determine price. The group is small and partly censored, so its summary statistics should be read with caution.
+
+\newpage
+\section*{Chapter 3}
+
+\subsection*{Exercise 1}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{table3.4.png}
+  \caption{Table 3.4: multiple regression of \texttt{sales} on \texttt{TV}, \texttt{radio} and \texttt{newspaper}.}
+  \label{fig:table34}
+\end{figure}
+
+The model is
+\begin{equation*}
+  \texttt{sales} = \beta_0 + \beta_1\,\texttt{TV} + \beta_2\,\texttt{radio} + \beta_3\,\texttt{newspaper} + \varepsilon .
+\end{equation*}
+Each $p$-value in Table~3.4 corresponds to a separate null hypothesis of the form $H_0^{(j)}\colon \beta_j = 0$, holding the other two predictors fixed. In words:
+\begin{itemize}
+  \item $H_0^{\text{TV}}$: given the radio and newspaper budgets, the TV budget has no effect on sales.
+  \item $H_0^{\text{radio}}$: given the TV and newspaper budgets, the radio budget has no effect on sales.
+  \item $H_0^{\text{newspaper}}$: given the TV and radio budgets, the newspaper budget has no effect on sales.
+  \item $H_0^{\text{intercept}}$: with all three budgets equal to zero, expected sales are zero.
+\end{itemize}
+The $p$-value is the probability, if $H_0^{(j)}$ were true, of observing a $t$-statistic at least as far from zero as the one obtained, i.e.\ of seeing an estimated effect at least this large purely by chance.
+
+For \texttt{TV} and \texttt{radio} the $p$-values are below 0.0001, so such large estimated effects would essentially never arise by chance if the true effects were zero. We reject both null hypotheses and conclude that, holding the other budgets fixed, increasing TV or radio advertising is associated with higher sales (by about 0.046 and 0.189 thousand units per thousand dollars respectively). For \texttt{newspaper} the $p$-value is 0.8599: an estimated effect of this size (or larger) would occur 86\% of the time even if newspaper advertising had no effect at all, once TV and radio are accounted for. We therefore cannot reject $H_0^{\text{newspaper}}$; there is no evidence that newspaper advertising affects sales beyond what TV and radio already explain. This does not mean newspaper spending is unrelated to sales in isolation, only that it adds nothing once the other two are in the model. The intercept's small $p$-value says that expected sales are positive even with no advertising.
+
+\subsection*{Exercise 5}
+
+For regression through the origin the fitted values are $\hat y_i = x_i \hat\beta$ with
+\begin{equation*}
+  \hat\beta = \frac{\sum_{k=1}^n x_k y_k}{\sum_{k=1}^n x_k^2},
+\end{equation*}
+where the summation index has been renamed to $k$ to keep it distinct from the fixed index $i$. Substituting,
+\begin{equation*}
+  \hat y_i = x_i\,\frac{\sum_{i'=1}^n x_{i'} y_{i'}}{\sum_{k=1}^n x_k^2}
+          = \sum_{i'=1}^n \frac{x_i\, x_{i'}}{\sum_{k=1}^n x_k^2}\; y_{i'}
+          = \sum_{i'=1}^n a_{i'}\, y_{i'},
+\end{equation*}
+so
+\begin{equation*}
+  a_{i'} = \frac{x_i\, x_{i'}}{\sum_{k=1}^n x_k^2}.
+\end{equation*}
+Each fitted value is a linear combination of all the responses, with weights proportional to the product of the corresponding predictor values. More precisely $a_{i'}$ depends on $i$ as well, $a_{i'} = a_{i,i'}$, and it is the $(i,i')$ entry of the hat matrix $H = \mathbf{x}(\mathbf{x}^\top\mathbf{x})^{-1}\mathbf{x}^\top$, since $\hat{\mathbf y} = H\mathbf y$.
+
+\subsection*{Exercise 8 -- simple linear regression on \texttt{Auto}}
+
+\paragraph{(a) Fitting the model.}
+Table~\ref{tab:auto-8a} gives the least squares fit of \texttt{mpg} on \texttt{horsepower}.
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Term & Estimate & Std.\ error & $t$ & $p$-value & 95\% CI \\
+    \midrule
+    Intercept  & 39.936   & 0.717 & 55.66  & $<0.001$ & $[38.525,\ 41.347]$ \\
+    horsepower & $-0.158$ & 0.006 & $-24.49$ & $<0.001$ & $[-0.171,\ -0.145]$ \\
+    \midrule
+    \multicolumn{6}{l}{$n = 392$, \quad $R^2 = 0.606$, \quad adjusted $R^2 = 0.605$, \quad RSE $= 4.91$, \quad $F = 599.7$ ($p = 7.0\times10^{-81}$)} \\
+    \bottomrule
+  \end{tabular}
+  \caption{Simple linear regression of \texttt{mpg} on \texttt{horsepower}.}
+  \label{tab:auto-8a}
+\end{table}
+
+\begin{enumerate}
+  \item[i.] There is a relationship: the slope is highly significant ($t = -24.5$, $p < 0.001$) and the $F$-test gives the same conclusion.
+  \item[ii.] It is moderately strong. Horsepower explains 60.6\% of the variance in \texttt{mpg}, and the residual standard error of 4.91 is about 21\% of the mean \texttt{mpg} of 23.45, so individual cars still deviate substantially from the line.
+  \item[iii.] It is negative: each additional horsepower lowers expected \texttt{mpg} by 0.158.
+  \item[iv.] For a car with 98 horsepower the model predicts $39.936 - 0.158\cdot 98 = 24.47$ \texttt{mpg}. The 95\% confidence interval for the mean response is $[23.97,\ 24.96]$; the 95\% prediction interval for a single new car is $[14.81,\ 34.13]$. The prediction interval is much wider because it includes the residual variation of individual cars, not only the uncertainty in the fitted line.
+\end{enumerate}
+
+\paragraph{(b) Scatterplot with the regression line.}
+Figure~\ref{fig:auto-line} shows \texttt{mpg} against \texttt{horsepower} with the least squares line. The curvature of the point cloud is already visible: the line lies above the data around 100~hp and below it at both ends.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\linewidth]{auto_fit_line.png}
+  \caption{\texttt{mpg} versus \texttt{horsepower} with the least squares line.}
+  \label{fig:auto-line}
+\end{figure}
+
+\paragraph{(c) Diagnostic plots.}
+Figure~\ref{fig:auto-diag-simple} shows residuals against fitted values, a normal Q--Q plot, a scale--location plot and residuals against leverage; Figure~\ref{fig:binned} adds the binned mean residual against \texttt{horsepower}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{auto_diag_simple.png}
+  \caption{Diagnostic plots for the simple linear regression.}
+  \label{fig:auto-diag-simple}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{binned_mean_res.png}
+  \caption{Binned mean residual ($\pm 2$ SE) and binned residual standard deviation against \texttt{horsepower}.}
+  \label{fig:binned}
+\end{figure}
+
+Three problems are visible. First, the residuals show a pronounced U-shape: binned residual means are positive below about 70~hp (around $+3.7$), negative between 90 and 110~hp (around $-2.6$) and positive again above 180~hp (around $+5.9$). A straight line systematically underpredicts \texttt{mpg} at both low and high horsepower and overpredicts in the middle. Adding a quadratic term raises $R^2$ from 0.606 to 0.688. Second, the residual spread is not constant: it is larger for low-horsepower cars (high fitted values) than for powerful cars, and a Breusch--Pagan test rejects constant variance ($p = 0.003$). The standard errors and intervals in (a) are therefore not fully reliable. Third, the residual distribution is right-skewed (skewness 0.49) and the upper tail of the Q--Q plot departs from the line; these large positive residuals are the small, efficient cars that the line underpredicts, so the non-normality is mostly a consequence of the omitted curvature. A quadratic term in \texttt{horsepower} or a log-transformed response would address all three issues.
+
+\subsection*{Exercise 9 -- multiple linear regression on \texttt{Auto}}
+
+\paragraph{(a) Scatterplot matrix.}
+Figure~\ref{fig:auto-scatter} shows all pairwise scatterplots. \texttt{mpg} decreases with \texttt{cylinders}, \texttt{displacement}, \texttt{horsepower} and \texttt{weight}, each time along a convex curve rather than a line, and increases with \texttt{year} and \texttt{origin}. The four engine and size variables are almost linearly related to each other. \texttt{cylinders} and \texttt{origin} take only a few values, producing vertical bands.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{auto_scatter_matrix.png}
+  \caption{Scatterplot matrix of the \texttt{Auto} data.}
+  \label{fig:auto-scatter}
+\end{figure}
+
+\paragraph{(b) Correlation matrix.}
+Table~\ref{tab:auto-corr} gives the correlations. \texttt{mpg} is most strongly correlated with \texttt{weight} ($-0.83$), \texttt{displacement} ($-0.81$), \texttt{horsepower} and \texttt{cylinders} ($-0.78$). Among the predictors, \texttt{cylinders}, \texttt{displacement}, \texttt{horsepower} and \texttt{weight} are mutually correlated between 0.84 and 0.95, which will make their individual coefficients unstable in a joint regression.
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{lrrrrrrrr}
+    \toprule
+    & mpg & cyl & disp & hp & weight & accel & year & origin \\
+    \midrule
+    mpg          &  1.00 & $-0.78$ & $-0.81$ & $-0.78$ & $-0.83$ &  0.42 &  0.58 &  0.57 \\
+    cylinders    & $-0.78$ &  1.00 &  0.95 &  0.84 &  0.90 & $-0.50$ & $-0.35$ & $-0.57$ \\
+    displacement & $-0.81$ &  0.95 &  1.00 &  0.90 &  0.93 & $-0.54$ & $-0.37$ & $-0.61$ \\
+    horsepower   & $-0.78$ &  0.84 &  0.90 &  1.00 &  0.86 & $-0.69$ & $-0.42$ & $-0.46$ \\
+    weight       & $-0.83$ &  0.90 &  0.93 &  0.86 &  1.00 & $-0.42$ & $-0.31$ & $-0.59$ \\
+    acceleration &  0.42 & $-0.50$ & $-0.54$ & $-0.69$ & $-0.42$ &  1.00 &  0.29 &  0.21 \\
+    year         &  0.58 & $-0.35$ & $-0.37$ & $-0.42$ & $-0.31$ &  0.29 &  1.00 &  0.18 \\
+    origin       &  0.57 & $-0.57$ & $-0.61$ & $-0.46$ & $-0.59$ &  0.21 &  0.18 &  1.00 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Correlation matrix of the quantitative variables in \texttt{Auto}.}
+  \label{tab:auto-corr}
+\end{table}
+
+\paragraph{(c) Multiple regression.}
+Table~\ref{tab:auto-9c} reports the regression of \texttt{mpg} on all predictors except \texttt{name}.
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lrrrr}
+    \toprule
+    Term & Estimate & Std.\ error & $t$ & $p$-value \\
+    \midrule
+    Intercept    & $-17.218$ & 4.644 & $-3.71$ & 0.0002 \\
+    cylinders    & $-0.493$  & 0.323 & $-1.53$ & 0.128 \\
+    displacement & 0.020     & 0.008 & 2.65    & 0.008 \\
+    horsepower   & $-0.017$  & 0.014 & $-1.23$ & 0.220 \\
+    weight       & $-0.0065$ & 0.0007 & $-9.93$ & $<0.001$ \\
+    acceleration & 0.081     & 0.099 & 0.82    & 0.415 \\
+    year         & 0.751     & 0.051 & 14.73   & $<0.001$ \\
+    origin       & 1.426     & 0.278 & 5.13    & $<0.001$ \\
+    \midrule
+    \multicolumn{5}{l}{$n = 392$, \quad $R^2 = 0.821$, \quad adjusted $R^2 = 0.818$, \quad RSE $= 3.33$, \quad $F = 252.4$ ($p = 2\times10^{-139}$)} \\
+    \bottomrule
+  \end{tabular}
+  \caption{Multiple linear regression of \texttt{mpg} on all predictors except \texttt{name}.}
+  \label{tab:auto-9c}
+\end{table}
+
+\begin{enumerate}
+  \item[i.] There is a relationship. The $F$-statistic from \texttt{anova\_lm} (equivalently the overall $F$-test in the summary) is 252.4 with $p \approx 10^{-139}$, so the null hypothesis that all seven coefficients are zero is rejected decisively; the predictors jointly explain 82\% of the variance in \texttt{mpg}.
+  \item[ii.] \texttt{weight}, \texttt{year} and \texttt{origin} are significant at the 0.001 level and \texttt{displacement} at the 0.01 level. \texttt{cylinders}, \texttt{horsepower} and \texttt{acceleration} are not significant once the others are included. This does not mean that horsepower is unrelated to \texttt{mpg}; it is highly significant on its own (Exercise 8). Rather, its correlation of 0.86--0.90 with \texttt{weight} and \texttt{displacement} means that the information it carries is already in the model, and the coefficients of the correlated group are individually poorly determined.
+  \item[iii.] The coefficient for \texttt{year} is 0.751 with a very small standard error: holding the other variables fixed, each additional model year is associated with 0.75 more miles per gallon. Over the twelve years of the data this amounts to about 9~\texttt{mpg}, a steady improvement in fuel efficiency at given engine size and weight, consistent with the technological and regulatory changes of the 1970s.
+\end{enumerate}
+
+\paragraph{(d) Diagnostic plots.}
+Figure~\ref{fig:diag-base} shows the four standard diagnostic plots for the model in (c).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{diag_base.png}
+  \caption{Diagnostic plots for the multiple linear regression fitted in part~(c).}
+  \label{fig:diag-base}
+\end{figure}
+
+\emph{Residuals vs fitted.} The residuals follow a clear U-shape: positive for fitted values below about 15~mpg, negative between roughly 18 and 28, positive again above 30. The relationship is not linear even with all seven predictors included, and the model systematically underpredicts fuel efficiency for the most and least efficient cars.
+
+\emph{Normal Q--Q.} The standardized residuals follow the reference line from $-3$ up to about $+1.8$, then the upper tail bends upward. Four observations have standardized residuals above 3, the largest 3.95. The departure is one-sided and concerns cars far more efficient than predicted, so it is largely a consequence of the curvature rather than a separate problem.
+
+\emph{Scale--location.} The spread of the residuals increases mildly with the fitted value; a Breusch--Pagan test rejects constant variance ($p = 1.2\times10^{-4}$), so the standard errors in (c) should be treated with some caution.
+
+\emph{Residuals vs leverage.} One observation has leverage 0.19, almost five times the rule-of-thumb threshold $2p/n = 0.041$; it is a car with a very large engine relative to its weight. Its standardized residual is only $-1.6$ and its Cook's distance 0.08, well below 0.5, so it does not materially affect the coefficients. The observations with the largest residuals all have low leverage. In summary the fit shows a few unusually large outliers in the response and one high-leverage point, but no observation that is both outlying and influential.
+
+\paragraph{(e) Interaction effects.}
+Table~\ref{tab:interactions} reports the result of adding a single interaction term to the model of (c), using the \texttt{a:b} syntax (\texttt{a*b} expands to \texttt{a + b + a:b}).
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lrrr}
+    \toprule
+    Interaction added & Coefficient & $p$-value & Adjusted $R^2$ \\
+    \midrule
+    (none, model from part (c))      &                     &                    & 0.818 \\
+    \texttt{displacement:horsepower} & $5.2\times10^{-4}$  & $3\times10^{-24}$  & 0.861 \\
+    \texttt{horsepower:weight}       & $5.5\times10^{-5}$  & $4\times10^{-23}$  & 0.859 \\
+    \texttt{horsepower:year}         & $-1.1\times10^{-2}$ & $7\times10^{-17}$  & 0.848 \\
+    \texttt{weight:year}             & $-4.9\times10^{-4}$ & $1\times10^{-14}$  & 0.844 \\
+    \texttt{cylinders:displacement}  & $1.4\times10^{-2}$  & $3\times10^{-14}$  & 0.843 \\
+    \texttt{year:origin}             & $2.0\times10^{-1}$  & $1\times10^{-3}$   & 0.823 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Single interaction terms added to the multiple regression of part~(c).}
+  \label{tab:interactions}
+\end{table}
+
+All six interactions are statistically significant at any conventional level, and the strongest are between engine size and car size. The model \texttt{mpg \textasciitilde{} horsepower * weight + year + origin} reaches $R^2 = 0.861$ with only five terms. Its coefficients are $-0.216$ for \texttt{horsepower}, $-0.0111$ for \texttt{weight} and $+5.5\times10^{-5}$ for the product, so the marginal effect of horsepower is
+\begin{equation*}
+  \frac{\partial\,\texttt{mpg}}{\partial\,\texttt{horsepower}} = -0.216 + 5.5\times10^{-5}\cdot\texttt{weight},
+\end{equation*}
+which equals $-0.106$~mpg per hp for a 2000~lb car, $-0.051$ at 3000~lb and approximately zero at 4000~lb. Additional horsepower costs fuel efficiency in light cars but hardly at all in heavy cars, which are already inefficient; symmetrically, extra weight matters less for powerful cars. The main effects therefore cannot be interpreted in isolation. The negative \texttt{horsepower:year} coefficient indicates that the efficiency gap between weak and powerful engines widened over the sample period. The large condition number reported by \texttt{statsmodels} ($10^7$) is a scaling artefact of the product term and disappears if the variables are centred before multiplying.
+
+\paragraph{(f) Transformations.}
+Table~\ref{tab:transforms} compares transformations of a predictor and of the response using $\log(X)$, $\sqrt{X}$ and $X^2$. Because $R^2$ for a model of $\log(\texttt{mpg})$ measures explained variance on the log scale, the third column recomputes $R^2$ on the original \texttt{mpg} scale from the back-transformed predictions.
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lrrr}
+    \toprule
+    Model & Adj.\ $R^2$ & $R^2$ (mpg scale) & Breusch--Pagan $p$ \\
+    \midrule
+    base (part (c))                                   & 0.818 & 0.822 & $1\times10^{-4}$ \\
+    \texttt{horsepower} $+$ \texttt{horsepower}$^2$   & 0.852 & 0.855 & $5\times10^{-6}$ \\
+    $\log(\texttt{horsepower})$                       & 0.834 & 0.837 & $2\times10^{-5}$ \\
+    $\sqrt{\texttt{horsepower}}$                      & 0.824 & 0.827 & $1\times10^{-4}$ \\
+    $\log(\texttt{mpg})$ as response                  & 0.877 & 0.856 & 0.09 \\
+    $\log(\texttt{mpg})$, $\log(\texttt{horsepower})$, $\log(\texttt{weight})$ & 0.889 & 0.867 & 0.13 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Transformations of predictors and response. Breusch--Pagan tests constant residual variance; small $p$ indicates heteroscedasticity.}
+  \label{tab:transforms}
+\end{table}
+
+Transforming \texttt{horsepower} alone improves the fit, most for the quadratic term, but makes the heteroscedasticity worse. Transforming the response addresses both problems: with $\log(\texttt{mpg})$ the U-shape in the residuals disappears (binned mean residuals fall from a range of $[-1.6, +2.3]$~mpg to within $\pm 0.02$ on the log scale) and the Breusch--Pagan test no longer rejects constant variance. The best model uses logarithms of the response and of the skewed size variables:
+\begin{align*}
+  \log(\texttt{mpg}) ={}& 7.23 - 0.261\,\log(\texttt{horsepower}) - 0.637\,\log(\texttt{weight}) + 0.030\,\texttt{year} \\
+                       &+ 0.026\,\texttt{origin} - 0.025\,\texttt{cylinders} + 0.0004\,\texttt{displacement} - 0.007\,\texttt{acceleration}.
+\end{align*}
+The coefficients are elasticities: a 1\% heavier car has about 0.64\% lower fuel efficiency, and each model year adds about 3\%. Transforming the remaining predictors as well (\texttt{displacement}, \texttt{acceleration}, \texttt{year}, or all of them) changes adjusted $R^2$ only in the third decimal, because \texttt{year} and \texttt{acceleration} are nearly symmetric and linearly related to $\log(\texttt{mpg})$, and \texttt{displacement} is correlated above 0.87 with the two variables already transformed. Figure~\ref{fig:diag-loglog} shows the diagnostic plots for the log--log model: the curvature and the trend in spread from (d) are gone, while a few large positive residuals remain.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{diag_loglog.png}
+  \caption{Diagnostic plots for the log--log model.}
+  \label{fig:diag-loglog}
+\end{figure}
+
+\end{document}
