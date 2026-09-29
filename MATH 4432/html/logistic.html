@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logistisk regression – träning</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.65 Georgia, "Times New Roman", serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 {
+    font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px;
+    border-top: 1px solid var(--rule);
+  }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  .key {
+    background: var(--key); border-left: 3px solid var(--accent);
+    padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0;
+  }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .scroll { overflow-x: auto; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  table {
+    border-collapse: collapse; width: 100%; font-size: 0.93rem;
+    font-family: -apple-system, "Segoe UI", sans-serif; background: var(--card);
+  }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; }
+  pre {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 6px;
+    padding: 14px 16px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5;
+  }
+  code { font-size: 0.9em; }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a><a href="vif.html">← VIF</a></nav>
+
+<h1>Träna en logistisk modell</h1>
+<p class="sub">Binärt fall, $Y \in \{0, 1\}$. Följer ISLP avsnitt 4.3 och fyller i den matematik boken hoppar över.</p>
+
+<h2><span>1</span>Modellen</h2>
+<p>Vi modellerar sannolikheten $p(x) = \Pr(Y = 1 \mid X = x)$. En linjär funktion kan hamna utanför $[0, 1]$, så den skickas genom den logistiska funktionen (ISLP ekv. 4.2):</p>
+$$p(x) = \frac{e^{\beta_0 + \beta_1 x}}{1 + e^{\beta_0 + \beta_1 x}} = \sigma(\beta_0 + \beta_1 x), \qquad \sigma(z) = \frac{1}{1 + e^{-z}}.$$
+<p>Ekvivalent är log-oddsen (logit) linjär i $x$ (ekv. 4.4):</p>
+$$\log \frac{p(x)}{1 - p(x)} = \beta_0 + \beta_1 x.$$
+<p>En enhets ökning i $x$ multiplicerar oddsen med $e^{\beta_1}$. Med flera prediktorer byts $\beta_0 + \beta_1 x$ mot $x_i^\top \beta$, där $x_i$ innehåller en etta för interceptet.</p>
+
+<h2><span>2</span>Vad som maximeras</h2>
+<p>Varje $y_i$ är Bernoulli-fördelad med sannolikhet $p_i = \sigma(x_i^\top \beta)$. Likelihooden är (ekv. 4.5)</p>
+$$\ell(\beta) = \prod_{i:\,y_i = 1} p_i \prod_{i':\,y_{i'} = 0} (1 - p_{i'}) = \prod_{i=1}^n p_i^{\,y_i} (1 - p_i)^{1 - y_i}.$$
+<p>Logaritmera och sätt in $p_i$:</p>
+<div class="key">
+$$L(\beta) = \sum_{i=1}^n \Big[\, y_i \log p_i + (1 - y_i) \log(1 - p_i) \Big] = \sum_{i=1}^n \Big[\, y_i\, x_i^\top \beta - \log\!\big(1 + e^{x_i^\top \beta}\big) \Big]$$
+</div>
+<p>I maskininlärning minimerar man $-L(\beta)/n$ och kallar det <em>binär korsentropi</em> eller <em>log loss</em>. Det är samma problem.</p>
+
+<h2><span>3</span>Gradient och Hessian</h2>
+<p>Eftersom $\sigma'(z) = \sigma(z)(1 - \sigma(z))$ blir derivatorna enkla:</p>
+$$\nabla L(\beta) = \sum_{i=1}^n (y_i - p_i)\, x_i = X^\top (y - p),$$
+$$\nabla^2 L(\beta) = -\sum_{i=1}^n p_i (1 - p_i)\, x_i x_i^\top = -X^\top W X, \qquad W = \operatorname{diag}\big(p_i (1 - p_i)\big).$$
+<p>Hessianen är negativt semidefinit, så $L$ är konkav och varje stationär punkt är ett globalt maximum. Villkoret $X^\top (y - p) = 0$ har dock ingen sluten lösning, eftersom $p$ beror icke-linjärt på $\beta$. Därför behövs iteration.</p>
+
+<h2><span>4</span>Två sätt att träna</h2>
+<p><strong>Gradientmetoden</strong> (standard i maskininlärning), med steglängd $\alpha$:</p>
+$$\beta^{(t+1)} = \beta^{(t)} + \alpha \cdot \tfrac{1}{n} X^\top \big(y - p^{(t)}\big).$$
+<p><strong>Newton–Raphson</strong> (standard i statistikprogram), som även använder krökningen:</p>
+$$\beta^{(t+1)} = \beta^{(t)} + \big(X^\top W^{(t)} X\big)^{-1} X^\top \big(y - p^{(t)}\big).$$
+<p>Newton-steget kan skrivas som en viktad minsta kvadrat-lösning, därav namnet IRLS (iteratively reweighted least squares):</p>
+$$\beta^{(t+1)} = \big(X^\top W X\big)^{-1} X^\top W z, \qquad z = X \beta^{(t)} + W^{-1}(y - p).$$
+<p class="note">Newton konvergerar på ett tiotal iterationer men kräver att ett $(p+1) \times (p+1)$-system löses varje steg. Gradientmetoden är billig per steg och skalar till stora modeller, men behöver många steg och standardiserade prediktorer.</p>
+
+<h2><span>5</span>Koefficienter, standardfel och sannolikheter</h2>
+<p>När iterationen konvergerat är $\hat\beta$ koefficienterna. Standardfelen kommer från den inversa informationsmatrisen:</p>
+$$\widehat{\operatorname{Var}}(\hat\beta) = \big(X^\top \hat W X\big)^{-1}, \qquad z_j = \frac{\hat\beta_j}{\operatorname{SE}(\hat\beta_j)}.$$
+<p>Sannolikheten för en ny observation $x_0$ och klassificeringen:</p>
+$$\hat p(x_0) = \sigma\big(x_0^\top \hat\beta\big), \qquad \hat y = \begin{cases} 1 & \hat p(x_0) \ge 0{,}5 \\ 0 & \text{annars} \end{cases}$$
+<p>Tröskeln 0,5 motsvarar $x_0^\top \hat\beta = 0$, så beslutsgränsen är linjär i $x$.</p>
+
+<h2><span>6</span>Kontroll på Default-datat</h2>
+<p><code>default</code> mot <code>balance</code>, $n = 10\,000$ varav 333 fallissemang. Newton–Raphson från $\beta = (0, 0)$:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>Iteration</th><th>$\beta_0$</th><th>$\beta_1$</th><th>$L(\beta)$</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>−2,3008</td><td>0,000519</td><td>−1938,80</td></tr>
+    <tr><td>2</td><td>−4,0056</td><td>0,001410</td><td>−1225,17</td></tr>
+    <tr><td>3</td><td>−6,0380</td><td>0,002727</td><td>−943,20</td></tr>
+    <tr><td>4</td><td>−8,1389</td><td>0,004028</td><td>−831,11</td></tr>
+    <tr><td>5</td><td>−9,7996</td><td>0,005009</td><td>−801,42</td></tr>
+    <tr><td>6</td><td>−10,5424</td><td>0,005437</td><td>−798,28</td></tr>
+    <tr><td>7</td><td>−10,6494</td><td>0,005498</td><td>−798,23</td></tr>
+    <tr><td>8</td><td>−10,6513</td><td>0,005499</td><td>−798,23</td></tr>
+  </tbody>
+</table>
+</div>
+<p>Jämförelse mellan metoderna och bokens tabell 4.1:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>Metod</th><th>$\hat\beta_0$</th><th>$\hat\beta_1$</th><th>Iterationer</th></tr></thead>
+  <tbody>
+    <tr><td>Newton–Raphson</td><td>−10,65133</td><td>0,00549892</td><td>10</td></tr>
+    <tr><td>Gradientmetod ($\alpha = 1$, standardiserad $x$)</td><td>−10,65133</td><td>0,00549892</td><td>6 579</td></tr>
+    <tr><td>statsmodels</td><td>−10,65133</td><td>0,00549892</td><td>–</td></tr>
+    <tr><td>ISLP tabell 4.1</td><td>−10,6513</td><td>0,0055</td><td>–</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="scroll">
+<table>
+  <thead><tr><th>Koefficient</th><th>Skattning</th><th>SE</th><th>$z$</th></tr></thead>
+  <tbody>
+    <tr><td>Intercept</td><td>−10,6513</td><td>0,3612</td><td>−29,49</td></tr>
+    <tr><td>balance</td><td>0,005499</td><td>0,000220</td><td>24,95</td></tr>
+  </tbody>
+</table>
+</div>
+<p>Predikterade sannolikheter:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>balance</th><th>$\hat p$</th></tr></thead>
+  <tbody>
+    <tr><td>1 000</td><td>0,00575</td></tr>
+    <tr><td>1 937</td><td>0,500 (beslutsgräns, $-\hat\beta_0 / \hat\beta_1$)</td></tr>
+    <tr><td>2 000</td><td>0,586</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">Boken anger 0,00576 för balance = 1 000 eftersom den räknar med avrundade koefficienter. I optimum är $\sum_i \hat p_i = \sum_i y_i = 333$, vilket följer av interceptets gradientvillkor.</p>
+
+<h2><span>7</span>Minimal implementation</h2>
+<pre><code>import numpy as np
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+def fit_newton(X, y, tol=1e-10, max_iter=50):
+    beta = np.zeros(X.shape[1])
+    for _ in range(max_iter):
+        p = sigmoid(X @ beta)
+        W = p * (1 - p)
+        step = np.linalg.solve(X.T @ (X * W[:, None]), X.T @ (y - p))
+        beta += step
+        if np.max(np.abs(step)) &lt; tol:
+            break
+    se = np.sqrt(np.diag(np.linalg.inv(X.T @ (X * W[:, None]))))
+    return beta, se
+
+def fit_gd(X, y, alpha=1.0, tol=1e-9, max_iter=200_000):
+    beta = np.zeros(X.shape[1])
+    for _ in range(max_iter):
+        grad = X.T @ (y - sigmoid(X @ beta)) / len(y)
+        beta += alpha * grad
+        if np.max(np.abs(grad)) &lt; tol:
+            break
+    return beta</code></pre>
+
+<h2><span>8</span>Fallgropar</h2>
+<p><strong>Perfekt separation.</strong> Om klasserna kan skiljas helt av ett hyperplan finns inget ändligt maximum: $\lVert \hat\beta \rVert \to \infty$. Regularisering löser det.</p>
+<p><strong>Regularisering.</strong> <code>sklearn.linear_model.LogisticRegression</code> lägger som standard på en $L_2$-straffterm, så dess koefficienter avviker från ren maximum likelihood om man inte stänger av den.</p>
+<p><strong>Skalning.</strong> Gradientmetoden på rå <code>balance</code> konvergerar mycket långsamt, eftersom Hessianen blir illa konditionerad. Standardisera först och räkna tillbaka koefficienterna efteråt.</p>
+
+</main>
+</body>
+</html>

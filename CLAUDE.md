@@ -4,7 +4,7 @@ Guidance for Claude Code when working in this repository (HKUST coursework, autu
 
 ## What this repo is
 
-Coursework for four HKUST courses. One folder per course, each with `code/` (notebooks, scripts, data), `pdf/` (slides, problem sets, solutions, exported submissions) and a `CHEATSHEET.md` (formula sheet with page references to the lecture notes or textbook). `web/` is a small React app that renders the repo's Markdown with LaTeX in a browser. Communication with the user is in Swedish; code, comments in notebooks and assignment text are in English.
+Coursework for four HKUST courses. One folder per course, each with `code/` (notebooks, scripts, data), `pdf/` (slides, problem sets, solutions, exported submissions), `html/` (standalone HTML pages with typeset derivations) and a `CHEATSHEET.md` (formula sheet with page references to the lecture notes or textbook). `web/` is a small React app that renders the repo's Markdown with LaTeX in a browser. Communication with the user is in Swedish; code, comments in notebooks and assignment text are in English.
 
 ```
 FINA 2203/   Fundamentals of Business Finance   (Berk & DeMarzo, Corporate Finance 6e GE)
@@ -53,7 +53,7 @@ Keep scratch pages short and delete them when they are no longer useful; they ar
 
 ## Conventions
 
-- **Where files go:** notebooks and data in `code/`, submissions and slides in `pdf/`, formula sheets as `<course>/CHEATSHEET.md`, assignment problem statements as `<course>/Assignment<N>.md`. Course folder names contain a space (`MATH 4511`); always quote paths.
+- **Where files go:** notebooks and data in `code/`, submissions and slides in `pdf/`, standalone HTML pages in `html/` (linked from that folder's `index.html`; scripts behind their numbers in `code/html_checks/`), formula sheets as `<course>/CHEATSHEET.md`, assignment problem statements as `<course>/Assignment<N>.md`. Course folder names contain a space (`MATH 4511`); always quote paths.
 - **Cheat sheets** are in Swedish, cite page numbers "(s. N)" of the source PDF, and include a facit table with numbers from worked examples or assignments so results can be verified. Follow the structure of `MATH 4511/CHEATSHEET.md`.
 - **Notebooks:** one Markdown header per exercise and sub-question; interpretation cells in English under each result; all imports in the first cell; no `savefig` calls; re-run top to bottom (Restart & Run All) before export so outputs are fresh. Prefer `brentq` over hand-written Newton/grid search for root finding.
 - **Verify before asserting.** When checking the user's code or reporting a numeric answer, recompute it (small `.venv/bin/python -c` script) rather than estimating. Show the comparison as a short table.

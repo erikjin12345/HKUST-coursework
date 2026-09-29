@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hessianen – härledning</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.65 Georgia, "Times New Roman", serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); margin-right: 16px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 {
+    font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px;
+    border-top: 1px solid var(--rule);
+  }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  .key {
+    background: var(--key); border-left: 3px solid var(--accent);
+    padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0;
+  }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .scroll { overflow-x: auto; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  table {
+    border-collapse: collapse; width: 100%; font-size: 0.93rem;
+    font-family: -apple-system, "Segoe UI", sans-serif; background: var(--card);
+  }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; }
+  code { font-size: 0.9em; }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a><a href="logistic.html">← Logistisk regression</a><a href="vif.html">VIF</a></nav>
+
+<h1>Härledning av Hessianen</h1>
+<p class="sub">Logistisk regression, $Y \in \{0,1\}$. Notation som på föreläsningsbilden: $p_i = \sigma(\beta^\top x_i)$.</p>
+
+<h2><span>0</span>Idén</h2>
+<p>Hessianen är derivatan av gradienten. I gradienten är $y_i$ och $x_i$ data, alltså konstanter. Det enda som beror på $\beta$ är $p_i$, så allt hänger på att derivera sigmoiden.</p>
+
+<h2><span>1</span>Gradienten</h2>
+<p>Med $\eta_i = \beta^\top x_i$ är log-likelihooden</p>
+$$\ell = \sum_{i=1}^n \Big[\, y_i \eta_i - \log\big(1 + e^{\eta_i}\big) \Big].$$
+<p>Kedjeregeln med $\partial \eta_i / \partial \beta = x_i$ ger för de två termerna</p>
+$$\frac{\partial}{\partial \beta}\, y_i \eta_i = y_i\, x_i,
+\qquad
+\frac{\partial}{\partial \beta} \log\big(1 + e^{\eta_i}\big) = \underbrace{\frac{e^{\eta_i}}{1 + e^{\eta_i}}}_{p_i}\, x_i,$$
+<p>och därmed</p>
+$$\nabla \ell = \sum_{i=1}^n (y_i - p_i)\, x_i = X^\top (y - p).$$
+
+<h2><span>2</span>Derivatan av $p_i$ med avseende på $\eta_i$</h2>
+<p>Kvotregeln på $p_i = e^{\eta_i} / (1 + e^{\eta_i})$:</p>
+$$\frac{d p_i}{d \eta_i}
+= \frac{e^{\eta_i}\big(1 + e^{\eta_i}\big) - e^{\eta_i} \cdot e^{\eta_i}}{\big(1 + e^{\eta_i}\big)^2}
+= \frac{e^{\eta_i}}{\big(1 + e^{\eta_i}\big)^2}
+= \underbrace{\frac{e^{\eta_i}}{1 + e^{\eta_i}}}_{p_i} \cdot \underbrace{\frac{1}{1 + e^{\eta_i}}}_{1 - p_i}$$
+<div class="key">
+$$\frac{d p_i}{d \eta_i} = p_i (1 - p_i)$$
+</div>
+
+<h2><span>3</span>Derivatan av $p_i$ med avseende på $\beta$</h2>
+<p>Kedjeregeln en gång till:</p>
+$$\frac{\partial p_i}{\partial \beta^\top}
+= \frac{d p_i}{d \eta_i} \cdot \frac{\partial \eta_i}{\partial \beta^\top}
+= p_i (1 - p_i)\, x_i^\top.$$
+<p class="note">Att derivera en skalär med avseende på $\beta^\top$ ger en radvektor. Det är därför $x_i^\top$ dyker upp i Hessianen.</p>
+
+<h2><span>4</span>Derivera gradienten</h2>
+$$H = \frac{\partial\, \nabla \ell}{\partial \beta^\top}
+= \sum_{i=1}^n x_i\, \frac{\partial (y_i - p_i)}{\partial \beta^\top}
+= \sum_{i=1}^n x_i \Big( 0 - p_i (1 - p_i)\, x_i^\top \Big)$$
+<div class="key">
+$$H = -\sum_{i=1}^n p_i (1 - p_i)\, x_i x_i^\top$$
+</div>
+<p>Minustecknet kommer från $-p_i$. Produkten $x_i x_i^\top$ är en yttre produkt, alltså en $(p+1) \times (p+1)$-matris.</p>
+<p class="note"><a href="jacobian.html" style="color: var(--accent)">Det här steget komponent för komponent →</a></p>
+
+<h2><span>5</span>Matrisform</h2>
+<p>Låt $X$ ha raderna $x_i^\top$ och sätt $W = \operatorname{diag}\big(p_1(1 - p_1), \dots, p_n(1 - p_n)\big)$. En viktad summa av yttre produkter är precis $X^\top W X$:</p>
+$$\sum_{i=1}^n w_i\, x_i x_i^\top = X^\top W X
+\quad\Longrightarrow\quad
+H = -X^\top W X.$$
+
+<h2><span>6</span>Samma sak elementvis</h2>
+<p>Utan matrisnotation är element $(j, k)$</p>
+$$H_{jk} = \frac{\partial^2 \ell}{\partial \beta_j\, \partial \beta_k}
+= \frac{\partial}{\partial \beta_k} \sum_{i=1}^n (y_i - p_i)\, x_{ij}
+= -\sum_{i=1}^n p_i (1 - p_i)\, x_{ij}\, x_{ik}.$$
+<p>Med intercept och en prediktor, $x_i = (1, x_i)^\top$ och $w_i = p_i(1 - p_i)$, blir det</p>
+$$H = -\begin{pmatrix} \sum_i w_i & \sum_i w_i x_i \\[4pt] \sum_i w_i x_i & \sum_i w_i x_i^2 \end{pmatrix}.$$
+
+<h2><span>7</span>Konsekvenser</h2>
+<p><strong>Konkavitet.</strong> För godtycklig vektor $v$:</p>
+$$v^\top H v = -\sum_{i=1}^n p_i (1 - p_i)\, \big(x_i^\top v\big)^2 \le 0,$$
+<p>eftersom $0 &lt; p_i &lt; 1$. $H$ är negativt semidefinit, $\ell$ är konkav, och varje stationär punkt är ett globalt maximum.</p>
+<p><strong>$y_i$ försvinner.</strong> Hessianen beror bara på $X$ och $\beta$, inte på utfallen.</p>
+<p><strong>Vikterna är varianser.</strong> $p_i(1 - p_i)$ är variansen för en Bernoulli($p_i$)-variabel. Den är som störst, $0{,}25$, vid $p_i = 0{,}5$ och går mot $0$ när modellen är säker. Osäkra observationer väger alltså tyngst.</p>
+<p><strong>Newton-steget</strong> använder Hessianen direkt:</p>
+$$\beta^{(t+1)} = \beta^{(t)} - H^{-1} \nabla \ell = \beta^{(t)} + \big(X^\top W X\big)^{-1} X^\top (y - p).$$
+
+<h2><span>8</span>Numerisk kontroll</h2>
+<p>Default-datat med standardiserad <code>balance</code>, utvärderat i $\beta = (-3;\ 1{,}5)$. Den analytiska formeln jämförs med centrala finita differenser av gradienten ($h = 10^{-5}$).</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>Element</th><th>$-X^\top W X$</th><th>Finita differenser</th></tr></thead>
+  <tbody>
+    <tr><td>$H_{11}$</td><td>−709,83208</td><td>−709,83208</td></tr>
+    <tr><td>$H_{12} = H_{21}$</td><td>−645,22574</td><td>−645,22574</td></tr>
+    <tr><td>$H_{22}$</td><td>−1066,60038</td><td>−1066,60038</td></tr>
+  </tbody>
+</table>
+</div>
+<p>Största absoluta avvikelse är $4{,}9 \cdot 10^{-7}$. Egenvärdena är $-1557{,}65$ och $-218{,}79$, båda negativa, vilket bekräftar konkaviteten i den punkten.</p>
+<p class="note">$H_{11} = -\sum_i w_i = -709{,}83$, i linje med formeln i avsnitt 6 eftersom interceptkolumnen består av ettor.</p>
+
+</main>
+</body>
+</html>

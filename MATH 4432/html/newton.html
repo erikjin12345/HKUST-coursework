@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Newton–Raphson från Taylor</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.65 Georgia, "Times New Roman", serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); margin-right: 16px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 {
+    font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px;
+    border-top: 1px solid var(--rule);
+  }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  h3 { font-size: 1.05rem; margin: 28px 0 4px; }
+  .key {
+    background: var(--key); border-left: 3px solid var(--accent);
+    padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0;
+  }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .scroll { overflow-x: auto; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  table {
+    border-collapse: collapse; width: 100%; font-size: 0.93rem;
+    font-family: -apple-system, "Segoe UI", sans-serif; background: var(--card);
+  }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a><a href="hessian.html">← Hessianen</a><a href="jacobian.html">Vektorderivata</a><a href="logistic.html">Logistisk regression</a><a href="vif.html">VIF</a></nav>
+
+<h1>Newton–Raphson från Taylorutveckling</h1>
+<p class="sub">Härledning av Newton-steget och de fyra raderna på föreläsningsbilden, fram till IRLS.</p>
+
+<h2><span>0</span>Idén</h2>
+<p>Ekvationen $\nabla \ell(\beta) = 0$ går inte att lösa exakt. Newtons metod ersätter därför $\ell$ med en andragradsapproximation kring den nuvarande gissningen $\beta^{old}$, maximerar approximationen exakt, och upprepar.</p>
+
+<h2><span>1</span>En variabel</h2>
+<p>Taylorutveckling av andra ordningen kring $\beta^{old}$:</p>
+$$\ell(\beta) \approx \ell(\beta^{old}) + \ell'(\beta^{old})\,(\beta - \beta^{old}) + \tfrac{1}{2}\, \ell''(\beta^{old})\,(\beta - \beta^{old})^2.$$
+<p>Högerledet är en parabel i $\beta$. Derivera med avseende på $\beta$ och sätt till noll:</p>
+$$\ell'(\beta^{old}) + \ell''(\beta^{old})\,(\beta - \beta^{old}) = 0
+\quad\Longrightarrow\quad
+\beta^{new} = \beta^{old} - \frac{\ell'(\beta^{old})}{\ell''(\beta^{old})}.$$
+<p class="note">Om $\ell'' &lt; 0$ är parabeln vänd nedåt och punkten är ett maximum.</p>
+
+<h2><span>2</span>Flera variabler</h2>
+<p>Samma utveckling med gradient och Hessian, där $\nabla \ell$ och $H$ är utvärderade i $\beta^{old}$. Sätt $d = \beta - \beta^{old}$:</p>
+$$\ell(\beta) \approx \underbrace{\ell(\beta^{old})}_{\text{konstant}} + \underbrace{\nabla \ell^\top d}_{\text{linjär}} + \underbrace{\tfrac{1}{2}\, d^\top H\, d}_{\text{kvadratisk}}.$$
+<p>Derivera med avseende på $\beta$. Två standardregler används, där den andra kräver att $H$ är symmetrisk:</p>
+$$\frac{\partial}{\partial d}\big(a^\top d\big) = a, \qquad \frac{\partial}{\partial d}\big(\tfrac{1}{2}\, d^\top H\, d\big) = H d.$$
+<p>Sätt gradienten av approximationen till noll:</p>
+$$\nabla \ell + H\,(\beta - \beta^{old}) = 0
+\quad\Longrightarrow\quad
+H\,(\beta - \beta^{old}) = -\nabla \ell.$$
+<p>Multiplicera med $H^{-1}$ från vänster:</p>
+<div class="key">
+$$\beta^{new} = \beta^{old} - H^{-1}\, \nabla \ell$$
+</div>
+<p>Det är första raden på bilden. $H^{-1}$ spelar samma roll som division med $\ell''$ i envariabelfallet.</p>
+<p class="note">Alternativ väg till samma resultat: Taylorutveckla gradienten till första ordningen, $\nabla \ell(\beta) \approx \nabla \ell(\beta^{old}) + H(\beta - \beta^{old})$, och sätt den till noll.</p>
+<p class="note"><a href="expansion.html" style="color: var(--accent)">Varför expanderar man inte kring $\hat\beta$? →</a></p>
+
+<h2><span>3</span>Bildens fyra rader</h2>
+
+<h3>Rad 1 → rad 2: sätt in gradient och Hessian</h3>
+<p>Med $\nabla \ell = X^\top (y - p)$ och $H = -X^\top W X$ tar de två minustecknen ut varandra:</p>
+$$\beta^{new} = \beta^{old} - \big(-X^\top W X\big)^{-1} X^\top (y - p) = \beta^{old} + \big(X^\top W X\big)^{-1} X^\top (y - p).$$
+
+<h3>Rad 2 → rad 3: bryt ut inversen</h3>
+<p>Skriv $\beta^{old}$ som identitetsmatrisen gånger sig själv, med $I = (X^\top W X)^{-1} (X^\top W X)$:</p>
+$$\beta^{old} = \big(X^\top W X\big)^{-1} \big(X^\top W X\big)\, \beta^{old}.$$
+<p>Då har båda termerna $(X^\top W X)^{-1}$ som vänsterfaktor och den kan brytas ut:</p>
+$$\beta^{new} = \big(X^\top W X\big)^{-1} \Big( X^\top W X\, \beta^{old} + X^\top (y - p) \Big).$$
+
+<p class="note"><a href="factor.html" style="color: var(--accent)">Det här steget i detalj, med räkneexempel →</a></p>
+
+<h3>Rad 3 → rad 4: bryt ut $X^\top W$</h3>
+<p>Andra termen saknar $W$. Skjut in $I = W W^{-1}$:</p>
+$$X^\top (y - p) = X^\top W\, W^{-1} (y - p).$$
+<p>Nu kan $X^\top W$ brytas ut ur parentesen:</p>
+$$X^\top W X\, \beta^{old} + X^\top W\, W^{-1}(y - p) = X^\top W \underbrace{\Big( X \beta^{old} + W^{-1}(y - p) \Big)}_{z}.$$
+<div class="key">
+$$\beta^{new} = \big(X^\top W X\big)^{-1} X^\top W z, \qquad z = X \beta^{old} + W^{-1}(y - p)$$
+</div>
+
+<h2><span>4</span>Varför det kallas IRLS</h2>
+<p>Viktad minsta kvadrat-regression av ett svar $z$ på $X$ med vikter $W$ löser</p>
+$$\min_\beta\ (z - X\beta)^\top W (z - X\beta)
+\quad\Longrightarrow\quad
+\hat\beta = \big(X^\top W X\big)^{-1} X^\top W z,$$
+<p>vilket är exakt rad 4. Varje Newton-steg är alltså en viktad linjär regression.</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>Ord</th><th style="text-align:left">Betydelse</th></tr></thead>
+  <tbody>
+    <tr><td>Least squares</td><td style="text-align:left">varje steg är en minsta kvadrat-lösning</td></tr>
+    <tr><td>Reweighted</td><td style="text-align:left">vikterna $w_i = p_i(1 - p_i)$ räknas om, eftersom $p_i$ beror på $\beta^{old}$</td></tr>
+    <tr><td>Iterative</td><td style="text-align:left">även $z$ ändras, så regressionen måste göras om tills $\beta$ slutar röra sig</td></tr>
+  </tbody>
+</table>
+</div>
+<p>Elementvis är det så kallade arbetssvaret</p>
+$$z_i = \underbrace{x_i^\top \beta^{old}}_{\eta_i,\ \text{nuvarande log-odds}} + \underbrace{\frac{y_i - p_i}{p_i (1 - p_i)}}_{\text{felet, omskalat till log-odds-skalan}}.$$
+<p class="note">Eftersom $d p_i / d \eta_i = p_i(1 - p_i)$ översätter divisionen ett fel i sannolikhet till motsvarande fel i $\eta$. $z_i$ är en linjärisering av $y_i$ på log-odds-skalan.</p>
+
+<h2><span>5</span>Varför steget går mot ett maximum</h2>
+<p>$H = -X^\top W X$ är negativt definit när $X$ har full kolumnrang, eftersom alla $w_i &gt; 0$. Andragradsapproximationen är då en nedåtvänd paraboloid med ett entydigt maximum, och $H^{-1}$ existerar.</p>
+<p>Vore $\ell$ exakt kvadratisk skulle ett enda steg räcka. Så är det i linjär regression. Här är $\ell$ inte kvadratisk, approximationen är bara lokal, och därför behövs flera steg.</p>
+
+<h2><span>6</span>Numerisk kontroll</h2>
+<p>Default-datat, start i $\beta = (0, 0)$. Då är $p_i = 0{,}5$, $w_i = 0{,}25$ och $z_i = 0 + (y_i - 0{,}5)/0{,}25 = \pm 2$. Newton-steget (rad 1) jämförs med en viktad regression av $z$ på $X$ (rad 4):</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>Steg</th><th>$\beta_0$ Newton</th><th>$\beta_0$ WLS</th><th>$\beta_1$ Newton</th><th>$\beta_1$ WLS</th><th>Största avvikelse</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>−2,300768</td><td>−2,300768</td><td>0,00051949</td><td>0,00051949</td><td>$1{,}8 \cdot 10^{-15}$</td></tr>
+    <tr><td>2</td><td>−4,005633</td><td>−4,005633</td><td>0,00140971</td><td>0,00140971</td><td>$8{,}5 \cdot 10^{-14}$</td></tr>
+    <tr><td>3</td><td>−6,037953</td><td>−6,037953</td><td>0,00272739</td><td>0,00272739</td><td>$1{,}6 \cdot 10^{-13}$</td></tr>
+  </tbody>
+</table>
+</div>
+<p>De två formerna ger samma resultat ned till avrundningsfel. Nedan jämförs vad andragradsapproximationen förutsäger med det verkliga värdet i den nya punkten:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>Steg</th><th>$\ell(\beta^{old})$</th><th>Approximationens max</th><th>Verkligt $\ell(\beta^{new})$</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>−6931,47</td><td>−2496,37</td><td>−1938,80</td></tr>
+    <tr><td>2</td><td>−1938,80</td><td>−1371,75</td><td>−1225,17</td></tr>
+    <tr><td>3</td><td>−1225,17</td><td>−1004,92</td><td>−943,20</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">Approximationen träffar inte exakt, vilket visar att $\ell$ inte är kvadratisk. Efter tio steg har metoden konvergerat till $\ell = -798{,}23$.</p>
+
+</main>
+</body>
+</html>

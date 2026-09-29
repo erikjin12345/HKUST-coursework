@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Val av expansionspunkt</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.65 Georgia, "Times New Roman", serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); margin-right: 16px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 {
+    font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px;
+    border-top: 1px solid var(--rule);
+  }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  .key {
+    background: var(--key); border-left: 3px solid var(--accent);
+    padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0;
+  }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .scroll { overflow-x: auto; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  table {
+    border-collapse: collapse; width: 100%; font-size: 0.93rem;
+    font-family: -apple-system, "Segoe UI", sans-serif; background: var(--card);
+  }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--rule); text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  td.l, th.l { text-align: left; }
+  th { color: var(--muted); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a><a href="newton.html">← Newton–Raphson</a><a href="hessian.html">Hessianen</a><a href="logistic.html">Logistisk regression</a><a href="vif.html">VIF</a></nav>
+
+<h1>Varför inte expandera kring $\hat\beta$?</h1>
+<p class="sub">Gradienten försvinner i maximum. Frågan är om man kan utnyttja det genom att välja $\hat\beta$ som expansionspunkt.</p>
+
+<h2><span>1</span>Kort svar</h2>
+<p>Villkoret $\nabla \ell(\hat\beta) = 0$ <em>används</em> i härledningen: det är ekvationen som löses. Men expansionspunkten måste vara en punkt där man faktiskt kan räkna ut $\nabla \ell$ och $H$, och $\hat\beta$ är just det okända. De två angreppssätten är ekvivalenta till första ordningen och skiljer sig bara i var Hessianen utvärderas.</p>
+
+<h2><span>2</span>Expansion kring $\hat\beta$</h2>
+<p>Eftersom $\nabla \ell(\hat\beta) = 0$ försvinner den linjära termen:</p>
+$$\ell(\beta) \approx \ell(\hat\beta) + \underbrace{\nabla \ell(\hat\beta)^\top}_{=\,0} (\beta - \hat\beta) + \tfrac{1}{2} (\beta - \hat\beta)^\top H(\hat\beta)\, (\beta - \hat\beta).$$
+<p>Uttrycket är korrekt, men som algoritm är det cirkulärt. Maximerar man högerledet får man $\beta = \hat\beta$, vilket bara säger att maximum ligger i maximum. Och för att räkna ut $\ell(\hat\beta)$ eller $H(\hat\beta)$ måste man redan känna $\hat\beta$.</p>
+
+<h2><span>3</span>Hur villkoret ändå används</h2>
+<p>Taylorutveckla gradienten kring den <strong>kända</strong> punkten $\beta^{old}$ och utvärdera i den <strong>okända</strong> punkten $\hat\beta$:</p>
+$$\underbrace{\nabla \ell(\hat\beta)}_{=\,0} \approx \nabla \ell(\beta^{old}) + H(\beta^{old})\, (\hat\beta - \beta^{old}).$$
+<p>Vänsterledet är noll just för att gradienten försvinner i maximum. Lös ut $\hat\beta$:</p>
+<div class="key">
+$$\hat\beta \approx \beta^{old} - H(\beta^{old})^{-1}\, \nabla \ell(\beta^{old})$$
+</div>
+<p>Det är Newton-steget. Allt i högerledet går att räkna ut. Eftersom likheten är approximativ blir resultatet inte $\hat\beta$ exakt utan en bättre gissning, $\beta^{new}$.</p>
+
+<h2><span>4</span>Den omvända expansionen</h2>
+<p>Gör man tvärtom, expanderar gradienten kring $\hat\beta$ och utvärderar i $\beta^{old}$, får man</p>
+$$\nabla \ell(\beta^{old}) \approx \underbrace{\nabla \ell(\hat\beta)}_{=\,0} + H(\hat\beta)\, (\beta^{old} - \hat\beta)
+\quad\Longrightarrow\quad
+\hat\beta \approx \beta^{old} - H(\hat\beta)^{-1}\, \nabla \ell(\beta^{old}).$$
+<p>Samma form, men med Hessianen utvärderad i $\hat\beta$. Den går inte att räkna ut. Byter man $H(\hat\beta)$ mot det bästa man har, $H(\beta^{old})$, är man tillbaka i Newton-steget.</p>
+
+<h2><span>5</span>Jämförelse</h2>
+<div class="scroll">
+<table>
+  <thead><tr><th>Expansionspunkt</th><th class="l">Steg</th><th class="l">Beräkningsbart</th><th class="l">Användning</th></tr></thead>
+  <tbody>
+    <tr><td>$\beta^{old}$</td><td class="l">$-H(\beta^{old})^{-1} \nabla \ell(\beta^{old})$</td><td class="l">ja</td><td class="l">algoritmen som hittar $\hat\beta$</td></tr>
+    <tr><td>$\hat\beta$</td><td class="l">$-H(\hat\beta)^{-1} \nabla \ell(\beta^{old})$</td><td class="l">nej</td><td class="l">teori om $\hat\beta$ i efterhand</td></tr>
+  </tbody>
+</table>
+</div>
+<p>Skillnaden mellan $H(\beta^{old})$ och $H(\hat\beta)$ är av storleksordningen $\lVert \beta^{old} - \hat\beta \rVert$, så de två stegen sammanfaller när iterationen närmar sig maximum.</p>
+
+<h2><span>6</span>Numerisk jämförelse</h2>
+<p>Default-datat. Från olika punkter längs Newton-banan tas ett steg med Hessianen i $\beta^{old}$ respektive i $\hat\beta$. Det senare kräver att man fuskar och använder det färdiga svaret. Tabellen visar felet i $\beta_0$ efter steget, där $\hat\beta_0 = -10{,}6513$.</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>Startpunkt</th><th>$\beta_0^{old}$</th><th>Fel med $H(\beta^{old})$</th><th>Fel med $H(\hat\beta)$</th></tr></thead>
+  <tbody>
+    <tr><td>Iteration 0</td><td>0</td><td>8,35</td><td>317,10</td></tr>
+    <tr><td>Iteration 3</td><td>−6,038</td><td>2,51</td><td>6,78</td></tr>
+    <tr><td>Iteration 5</td><td>−9,800</td><td>0,109</td><td>0,128</td></tr>
+    <tr><td>Iteration 7</td><td>−10,6494</td><td>$5{,}821 \cdot 10^{-7}$</td><td>$5{,}823 \cdot 10^{-7}$</td></tr>
+  </tbody>
+</table>
+</div>
+<p>Nära maximum är stegen praktiskt taget identiska, vilket bekräftar ekvivalensen. Långt ifrån är Hessianen i $\hat\beta$ till och med sämre: krökningen i maximum beskriver inte funktionen i startpunkten, så steget skjuter långt över målet.</p>
+<p class="note">Även om man på något sätt fick veta $H(\hat\beta)$ i förväg vore det alltså inte ett bättre val i början av iterationen i det här exemplet.</p>
+
+<h2><span>7</span>Var expansionen kring $\hat\beta$ hör hemma</h2>
+<p>Expansionen i avsnitt 2 är grunden för inferensen när $\hat\beta$ väl är funnen.</p>
+<p><strong>Standardfel.</strong> Krökningen i maximum avgör hur väl data bestämmer $\beta$. Skarp topp ger liten varians:</p>
+$$\widehat{\operatorname{Var}}(\hat\beta) = \big(-H(\hat\beta)\big)^{-1} = \big(X^\top \hat W X\big)^{-1}.$$
+<p><strong>Likelihoodkvottest.</strong> Flyttar man över $\ell(\hat\beta)$ och multiplicerar med $-2$ får man</p>
+$$2\big[\ell(\hat\beta) - \ell(\beta)\big] \approx (\beta - \hat\beta)^\top \big(-H(\hat\beta)\big) (\beta - \hat\beta),$$
+<p>vilket kopplar likelihoodkvoten till Wald-statistikan.</p>
+<p>Standardfelen i tabell 4.1 kommer alltså från Hessianen i sista iterationen. Newton-metoden ger dem på köpet.</p>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VIF – matematisk förklaring</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.65 Georgia, "Times New Roman", serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); margin-right: 16px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 {
+    font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px;
+    border-top: 1px solid var(--rule);
+  }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  .key {
+    background: var(--key); border-left: 3px solid var(--accent);
+    padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0;
+  }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .scroll { overflow-x: auto; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  table {
+    border-collapse: collapse; width: 100%; font-size: 0.93rem;
+    font-family: -apple-system, "Segoe UI", sans-serif; background: var(--card);
+  }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; }
+  code { font-size: 0.9em; }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a><a href="logistic.html">Logistisk regression →</a></nav>
+
+<h1>Variance Inflation Factor</h1>
+<p class="sub">Matematisk härledning, med kontroll mot Credit-datat från ISLP avsnitt 3.3.3.</p>
+
+<h2><span>1</span>Utgångspunkt</h2>
+<p>Modellen är $y = X\beta + \varepsilon$ med $\operatorname{Var}(\varepsilon) = \sigma^2 I$, där $X$ innehåller intercept och $p$ prediktorer. Minsta kvadrat-skattningen och dess kovariansmatris är</p>
+$$\hat\beta = (X^\top X)^{-1} X^\top y, \qquad \operatorname{Var}(\hat\beta) = \sigma^2 (X^\top X)^{-1}.$$
+<p>Variansen för en enskild koefficient är alltså $\sigma^2$ gånger ett diagonalelement i $(X^\top X)^{-1}$. VIF handlar om vad det diagonalelementet består av.</p>
+
+<h2><span>2</span>Härledning</h2>
+<p>Regressera $X_j$ på alla övriga prediktorer (med intercept) och kalla residualvektorn $\tilde x_j$. Enligt Frisch–Waugh–Lovell-satsen är</p>
+$$\hat\beta_j = \frac{\tilde x_j^\top y}{\tilde x_j^\top \tilde x_j}
+\quad\Longrightarrow\quad
+\operatorname{Var}(\hat\beta_j) = \frac{\sigma^2}{\lVert \tilde x_j \rVert^2}.$$
+<p>Nämnaren är residualkvadratsumman i hjälpregressionen. Med $R_j^2 = R^2_{X_j \mid X_{-j}}$ och $\mathrm{SST}_j = \sum_i (x_{ij} - \bar x_j)^2$ gäller $\lVert \tilde x_j \rVert^2 = \mathrm{SST}_j\,(1 - R_j^2)$, så</p>
+<div class="key">
+$$\operatorname{Var}(\hat\beta_j) \;=\; \underbrace{\frac{\sigma^2}{\mathrm{SST}_j}}_{\text{varians utan kollinearitet}} \;\times\; \underbrace{\frac{1}{1 - R_j^2}}_{\mathrm{VIF}_j}$$
+</div>
+<p>Den första faktorn är variansen som $\hat\beta_j$ skulle ha om $X_j$ vore okorrelerad med de övriga prediktorerna ($R_j^2 = 0$). VIF är den multiplikativa uppblåsningen ovanpå det.</p>
+<p class="note">Endast den del av $X_j$ som inte kan förklaras av de andra prediktorerna bär information om $\beta_j$. När $R_j^2$ är nära 1 finns nästan ingen sådan del kvar.</p>
+
+<h2><span>3</span>Egenskaper</h2>
+$$\mathrm{VIF}_j \ge 1, \qquad \mathrm{VIF}_j = 1 \iff R_j^2 = 0, \qquad \mathrm{VIF}_j \to \infty \ \text{ då } \ R_j^2 \to 1.$$
+<p>Standardfelet växer med roten ur VIF, vilket direkt krymper $t$-statistikan:</p>
+$$\operatorname{SE}(\hat\beta_j) = \frac{\sigma}{\sqrt{\mathrm{SST}_j}}\,\sqrt{\mathrm{VIF}_j}, \qquad t_j = \frac{\hat\beta_j}{\operatorname{SE}(\hat\beta_j)}.$$
+<p>Vid exakt linjärt beroende är $R_j^2 = 1$, $X^\top X$ singulär och $\hat\beta$ inte entydigt bestämd.</p>
+
+<h2><span>4</span>Koppling till korrelationsmatrisen</h2>
+<p>Låt $\mathbf{R}$ vara korrelationsmatrisen för prediktorerna. Då är VIF diagonalelementen i dess invers:</p>
+$$\mathrm{VIF}_j = \left[\mathbf{R}^{-1}\right]_{jj}.$$
+<p>Med bara två prediktorer och korrelation $r$ blir det</p>
+$$\mathbf{R}^{-1} = \frac{1}{1-r^2}\begin{pmatrix} 1 & -r \\ -r & 1 \end{pmatrix}
+\quad\Longrightarrow\quad \mathrm{VIF}_1 = \mathrm{VIF}_2 = \frac{1}{1-r^2}.$$
+<p>Med tre eller fler prediktorer beror $\left[\mathbf{R}^{-1}\right]_{jj}$ på hela matrisen, inte på enskilda element. Därför kan VIF vara stort trots att ingen parvis korrelation är det, vilket är just multikollinearitet.</p>
+
+<h2><span>5</span>Geometrisk tolkning</h2>
+<p>Låt $\theta_j$ vara vinkeln mellan den centrerade vektorn $x_j$ och det underrum som de övriga centrerade prediktorerna spänner upp. Då är $R_j^2 = \cos^2\theta_j$ och</p>
+$$\mathrm{VIF}_j = \frac{1}{\sin^2 \theta_j}.$$
+<p>Vinkelrät mot de andra ($\theta_j = 90^\circ$) ger VIF = 1. Ju mer $x_j$ lutar in i de andras underrum, desto större VIF.</p>
+
+<h2><span>6</span>Kontroll på Credit-datat</h2>
+<p>Regression av <code>Balance</code> på <code>Age</code>, <code>Rating</code> och <code>Limit</code>, $n = 400$, $\hat\sigma = \mathrm{RSE} = 229{,}08$. VIF är beräknat på tre sätt som ger identiska värden.</p>
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>Prediktor</th><th>$R_j^2$</th><th>$\frac{1}{1-R_j^2}$</th><th>$[\mathbf{R}^{-1}]_{jj}$</th><th>statsmodels</th><th>$\theta_j$</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Age</td><td>0,011257</td><td>1,011</td><td>1,011</td><td>1,011</td><td>83,91°</td></tr>
+    <tr><td>Rating</td><td>0,993776</td><td>160,668</td><td>160,668</td><td>160,668</td><td>4,52°</td></tr>
+    <tr><td>Limit</td><td>0,993773</td><td>160,593</td><td>160,593</td><td>160,593</td><td>4,53°</td></tr>
+  </tbody>
+</table>
+</div>
+<p>Värdena stämmer med bokens 1,01, 160,67 och 160,59. Nedan kontrolleras faktoriseringen av standardfelet.</p>
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>Prediktor</th><th>$\hat\sigma / \sqrt{\mathrm{SST}_j}$</th><th>$\sqrt{\mathrm{VIF}_j}$</th><th>Produkt</th><th>SE i modellen</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Age</td><td>0,66484</td><td>1,006</td><td>0,66861</td><td>0,66861</td></tr>
+    <tr><td>Rating</td><td>0,07412</td><td>12,676</td><td>0,93953</td><td>0,93953</td></tr>
+    <tr><td>Limit</td><td>0,004969</td><td>12,673</td><td>0,062964</td><td>0,062964</td></tr>
+  </tbody>
+</table>
+</div>
+<p>Korrelationen mellan <code>Rating</code> och <code>Limit</code> är $r = 0{,}9969$. Tvåprediktorformeln ger då $1/(1 - r^2) \approx 160$, nästan hela VIF-värdet, eftersom <code>Age</code> knappt bidrar.</p>
+
+<h2><span>7</span>Anmärkning om bokens formulering</h2>
+<p>ISLP beskriver VIF som kvoten mellan variansen för $\hat\beta_j$ i den fulla modellen och variansen om $X_j$ anpassas ensam. Det stämmer exakt med $1/(1 - R_j^2)$ bara om $\sigma^2$ hålls fix i båda fallen. I praktiken ändras även skattningen av $\sigma^2$ när prediktorer tas bort, så den empiriska kvoten mellan två körningar blir inte exakt VIF.</p>
+
+</main>
+</body>
+</html>

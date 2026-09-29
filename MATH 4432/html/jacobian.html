@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vektorderivata – steg för steg</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.65 Georgia, "Times New Roman", serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); margin-right: 16px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 {
+    font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px;
+    border-top: 1px solid var(--rule);
+  }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  .key {
+    background: var(--key); border-left: 3px solid var(--accent);
+    padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0;
+  }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .scroll { overflow-x: auto; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  table {
+    border-collapse: collapse; width: 100%; font-size: 0.93rem;
+    font-family: -apple-system, "Segoe UI", sans-serif; background: var(--card);
+  }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--rule); text-align: left; }
+  th { color: var(--muted); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a><a href="hessian.html">← Hessianen</a><a href="logistic.html">Logistisk regression</a><a href="vif.html">VIF</a></nav>
+
+<h1>Att derivera en kolumnvektor med en radvektor</h1>
+<p class="sub">Steg 4 i Hessian-härledningen, utskrivet komponent för komponent.</p>
+
+<h2><span>1</span>Vad som egentligen deriveras</h2>
+<p>Vektorn $x_i$ är data och beror inte på $\beta$, så dess egen derivata är noll. Det som deriveras är gradientbidraget från observation $i$, som är en kolumnvektor vars <em>skalära faktor</em> beror på $\beta$:</p>
+$$g_i(\beta) = \underbrace{(y_i - p_i)}_{\text{skalär, beror på } \beta} \cdot \underbrace{x_i}_{\text{konstant kolumn}}.$$
+<p>$x_i$ följer alltså bara med som en konstant, på samma sätt som $c$ i $\frac{d}{dt}\big[c \cdot f(t)\big] = c \cdot f'(t)$.</p>
+
+<h2><span>2</span>Definitionen: Jacobimatrisen</h2>
+<p>Låt $g(\beta)$ vara en kolumnvektor med $m$ komponenter och $\beta$ ha $k$ komponenter. Derivatan med avseende på radvektorn $\beta^\top$ är per definition $m \times k$-matrisen av alla partiella derivator:</p>
+$$\frac{\partial g}{\partial \beta^\top} =
+\begin{pmatrix}
+\dfrac{\partial g_1}{\partial \beta_1} & \cdots & \dfrac{\partial g_1}{\partial \beta_k} \\[10pt]
+\vdots & \ddots & \vdots \\[4pt]
+\dfrac{\partial g_m}{\partial \beta_1} & \cdots & \dfrac{\partial g_m}{\partial \beta_k}
+\end{pmatrix}$$
+<div class="scroll">
+<table>
+  <thead><tr><th>Riktning</th><th>Bestäms av</th><th>Betydelse</th></tr></thead>
+  <tbody>
+    <tr><td>Rader</td><td>kolumnvektorn $g$ i täljaren</td><td>vilken komponent av $g$ som deriveras</td></tr>
+    <tr><td>Kolumner</td><td>radvektorn $\beta^\top$ i nämnaren</td><td>vilken koefficient man deriverar med avseende på</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">Skrivsättet $\partial \beta^\top$ är en bokföringskonvention som talar om att derivatorna ska läggas ut längs en rad. Kolumn gånger rad ger en matris, precis som i en yttre produkt.</p>
+
+<h2><span>3</span>Tillämpat på logistisk regression</h2>
+<p>Ta fallet med intercept och en prediktor, $x_i = (1,\ x_i)^\top$ och $\beta = (\beta_0,\ \beta_1)^\top$. Gradientbidraget är</p>
+$$g_i = \begin{pmatrix} g_1 \\ g_2 \end{pmatrix} = \begin{pmatrix} (y_i - p_i) \cdot 1 \\ (y_i - p_i) \cdot x_i \end{pmatrix}.$$
+<p>Från steg 2–3 i Hessian-härledningen vet vi, med $w_i = p_i(1 - p_i)$:</p>
+$$\frac{\partial p_i}{\partial \beta_0} = w_i \cdot 1, \qquad \frac{\partial p_i}{\partial \beta_1} = w_i \cdot x_i.$$
+<p>De fyra partiella derivatorna blir då</p>
+$$\begin{aligned}
+\frac{\partial g_1}{\partial \beta_0} &= -\frac{\partial p_i}{\partial \beta_0} \cdot 1 = -w_i \cdot 1 \cdot 1
+&\qquad
+\frac{\partial g_1}{\partial \beta_1} &= -\frac{\partial p_i}{\partial \beta_1} \cdot 1 = -w_i \cdot 1 \cdot x_i
+\\[10pt]
+\frac{\partial g_2}{\partial \beta_0} &= -\frac{\partial p_i}{\partial \beta_0} \cdot x_i = -w_i \cdot x_i \cdot 1
+&\qquad
+\frac{\partial g_2}{\partial \beta_1} &= -\frac{\partial p_i}{\partial \beta_1} \cdot x_i = -w_i \cdot x_i \cdot x_i
+\end{aligned}$$
+<p>Lägg in dem i matrisen:</p>
+$$\frac{\partial g_i}{\partial \beta^\top}
+= -w_i \begin{pmatrix} 1 \cdot 1 & 1 \cdot x_i \\ x_i \cdot 1 & x_i \cdot x_i \end{pmatrix}
+= -w_i \begin{pmatrix} 1 \\ x_i \end{pmatrix} \begin{pmatrix} 1 & x_i \end{pmatrix}
+= -w_i\, x_i x_i^\top.$$
+
+<h2><span>4</span>Mönstret</h2>
+<p>Element $(j, k)$ i matrisen är alltid en produkt av två faktorer med olika ursprung:</p>
+<div class="key">
+$$\frac{\partial g_j}{\partial \beta_k} = -\,w_i \cdot \underbrace{x_{ij}}_{\substack{\text{från kolumnen } x_i \\ \text{som redan stod i } g}} \cdot \underbrace{x_{ik}}_{\substack{\text{från kedjeregeln} \\ \partial \eta_i / \partial \beta_k}}$$
+</div>
+<p>Det första $x_i$ fanns redan i gradienten och bestämmer raden. Det andra $x_i$ skapas när $p_i$ deriveras och bestämmer kolumnen. Därför blir resultatet $x_i x_i^\top$, en matris, och inte $x_i^\top x_i$, som är ett tal.</p>
+<p>I kompakt form:</p>
+$$\frac{\partial}{\partial \beta^\top} \Big[ (y_i - p_i)\, x_i \Big]
+= x_i \cdot \frac{\partial (y_i - p_i)}{\partial \beta^\top}
+= x_i \cdot \big( -w_i\, x_i^\top \big)
+= -w_i\, x_i x_i^\top.$$
+
+<h2><span>5</span>Räkneexempel</h2>
+<p>Låt $x_i = (1,\ 2)^\top$ och $\beta = (-1;\ 0{,}5)^\top$. Då är</p>
+$$\eta_i = -1 \cdot 1 + 0{,}5 \cdot 2 = 0, \qquad p_i = \frac{1}{1 + e^{0}} = 0{,}5, \qquad w_i = 0{,}5 \cdot 0{,}5 = 0{,}25.$$
+<p>Observationens bidrag till Hessianen:</p>
+$$-w_i\, x_i x_i^\top
+= -0{,}25 \begin{pmatrix} 1 \\ 2 \end{pmatrix} \begin{pmatrix} 1 & 2 \end{pmatrix}
+= -0{,}25 \begin{pmatrix} 1 & 2 \\ 2 & 4 \end{pmatrix}
+= \begin{pmatrix} -0{,}25 & -0{,}5 \\ -0{,}5 & -1 \end{pmatrix}.$$
+<p class="note">Värdet på $y_i$ behövdes aldrig. Det försvinner vid deriveringen eftersom det inte beror på $\beta$.</p>
+
+<h2><span>6</span>Dimensionskontroll</h2>
+<div class="scroll">
+<table>
+  <thead><tr><th>Uttryck</th><th>Form</th><th>Dimension</th></tr></thead>
+  <tbody>
+    <tr><td>$\ell$</td><td>skalär</td><td>$1 \times 1$</td></tr>
+    <tr><td>$\nabla \ell = \partial \ell / \partial \beta$</td><td>kolumnvektor</td><td>$(p+1) \times 1$</td></tr>
+    <tr><td>$\partial p_i / \partial \beta^\top$</td><td>radvektor</td><td>$1 \times (p+1)$</td></tr>
+    <tr><td>$x_i \cdot \partial p_i / \partial \beta^\top$</td><td>kolumn gånger rad</td><td>$(p+1) \times (p+1)$</td></tr>
+    <tr><td>$H = \partial\, \nabla \ell / \partial \beta^\top$</td><td>matris</td><td>$(p+1) \times (p+1)$</td></tr>
+  </tbody>
+</table>
+</div>
+<p>Summerar man bidragen över alla observationer får man hela Hessianen, $H = -\sum_i w_i\, x_i x_i^\top = -X^\top W X$.</p>
+
+</main>
+</body>
+</html>
