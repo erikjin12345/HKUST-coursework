@@ -9,6 +9,10 @@ __pycache__/
 .RData
 .Rproj.user/
 
+# Node (web/)
+node_modules/
+dist/
+
 # macOS / editors
 .DS_Store
 .vscode/

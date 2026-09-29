@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Minimal document styling for rendered Markdown. */
+.prose-doc {
+  @apply max-w-3xl text-[15px] leading-7 text-neutral-900;
+}
+.prose-doc h1 {
+  @apply mb-4 mt-2 text-3xl font-semibold tracking-tight;
+}
+.prose-doc h2 {
+  @apply mb-3 mt-10 border-b border-neutral-200 pb-1 text-2xl font-semibold;
+}
+.prose-doc h3 {
+  @apply mb-2 mt-8 text-xl font-semibold;
+}
+.prose-doc h4 {
+  @apply mb-2 mt-6 text-lg font-semibold;
+}
+.prose-doc p {
+  @apply my-3;
+}
+.prose-doc ul {
+  @apply my-3 list-disc pl-6;
+}
+.prose-doc ol {
+  @apply my-3 list-decimal pl-6;
+}
+.prose-doc li {
+  @apply my-1;
+}
+.prose-doc a {
+  @apply text-blue-700 underline;
+}
+.prose-doc hr {
+  @apply my-8 border-neutral-200;
+}
+.prose-doc blockquote {
+  @apply my-4 border-l-4 border-neutral-300 pl-4 text-neutral-700;
+}
+.prose-doc code {
+  @apply rounded bg-neutral-100 px-1 py-0.5 font-mono text-[13px];
+}
+.prose-doc pre {
+  @apply my-4 overflow-x-auto rounded-md bg-neutral-900 p-4 text-[13px] leading-6 text-neutral-100;
+}
+.prose-doc pre code {
+  @apply bg-transparent p-0 text-inherit;
+}
+.prose-doc table {
+  @apply my-4 block w-max max-w-full overflow-x-auto border-collapse text-sm;
+}
+.prose-doc th,
+.prose-doc td {
+  @apply border border-neutral-300 px-3 py-1.5 text-left align-top;
+}
+.prose-doc th {
+  @apply bg-neutral-100 font-semibold;
+}
+.prose-doc img {
+  @apply my-4 max-w-full rounded border border-neutral-200;
+}
+.prose-doc .katex-display {
+  @apply my-5 overflow-x-auto overflow-y-hidden py-1;
+}
