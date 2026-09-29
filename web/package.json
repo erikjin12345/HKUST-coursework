@@ -6,6 +6,7 @@
   "description": "Renders the repo's Markdown (with LaTeX) in a browser. Used to show derivations and formulas that the CLI cannot display.",
   "scripts": {
     "dev": "vite",
+    "stop": "lsof -ti tcp:8010 | xargs kill 2>/dev/null || echo 'ingen server på port 8010'",
     "build": "tsc -p tsconfig.app.json --noEmit && vite build",
     "preview": "vite preview",
     "type-check": "tsc -p tsconfig.app.json --noEmit"

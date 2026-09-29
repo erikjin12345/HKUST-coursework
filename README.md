@@ -32,7 +32,7 @@ web/      Vite + React-app som renderar repots markdown med LaTeX (KaTeX)
 cd web && npm install && npm run dev
 ```
 
-Öppnar `http://localhost:8010`. Menyn listar alla `.md`-filer i repot per kurs samt scratch-sidor i `web/content/`. Se `CLAUDE.md` för hur den används.
+Öppnar `http://localhost:8010`. Stoppa med Ctrl+C, eller `npm run stop` om servern kör i bakgrunden. Menyn listar alla `.md`-filer i repot per kurs samt scratch-sidor i `web/content/`. Se `CLAUDE.md` för hur den används.
 
 ## Submodul
 

@@ -35,6 +35,7 @@ Textbooks live outside the repo in `../HKUST books/` (ISLP, Corporate Finance). 
 
 # Markdown + LaTeX viewer (opens http://localhost:8010)
 cd web && npm install && npm run dev
+cd web && npm run stop           # kills whatever listens on port 8010 (for servers started in the background)
 cd web && npm run build          # type-check + production build
 
 # Submodule after a fresh clone
