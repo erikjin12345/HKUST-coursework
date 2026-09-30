@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Importance sampling – val av fördelning</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.65 Georgia, "Times New Roman", serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); margin-right: 16px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 { font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px; border-top: 1px solid var(--rule); }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  .key { background: var(--key); border-left: 3px solid var(--accent); padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0; }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .scroll { overflow-x: auto; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.93rem; font-family: -apple-system, "Segoe UI", sans-serif; background: var(--card); }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; }
+  code { font-size: 0.9em; }
+  .chain { text-align: center; font-size: 1.1rem; margin: 20px 0; }
+  .chain .arrow { color: var(--muted); margin: 0 12px; }
+  svg text { font: 13px -apple-system, "Segoe UI", sans-serif; fill: var(--fg); }
+  svg .muted { fill: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a></nav>
+
+<h1>Importance sampling: val av fördelning</h1>
+<p class="sub">Varför man byter fördelning på $W_T$ och inte på $V_T$, vad stödvillkoret faktiskt kräver, och hur $\mu$ väljs. Föreläsning 2, exempel 10, med kontroll mot Black–Scholes.</p>
+
+<h2><span>1</span>Problemet</h2>
+<p>Priset på en europeisk call med lösenpris $X = 250$ på en aktie med $S_0 = 100$, $r = 3\,\%$, $\sigma = 20\,\%$ och $T = 1$ är</p>
+$$V_0 = e^{-rT}\,\mathbb E_Q\big[\max(S_T - X, 0)\big], \qquad S_T = S_0\, e^{(r - \sigma^2/2)T + \sigma W_T}, \quad W_T \sim N(0, T).$$
+<p>Payoffen är skild från noll bara när $S_T > X$, och under $Q$ har den händelsen sannolikheten $P_Q(S_T > X) = 2.93 \times 10^{-6}$. Av en miljon dragningar hamnar i genomsnitt tre över lösenpriset. Skattningen bygger på de tre, och standardfelet blir därefter.</p>
+
+<h2><span>2</span>Var slumpen sitter</h2>
+<p>$V_T$ är ingen variabel man simulerar. Den är en deterministisk funktion av $W_T$:</p>
+<p class="chain">$W_T$ <span class="arrow">→</span> $S_T = S_0 e^{(r-\sigma^2/2)T + \sigma W_T}$ <span class="arrow">→</span> $V_T = \max(S_T - X, 0)$</p>
+<p>Det enda anropet till en slumptalsgenerator är för $W_T$. Allt nedströms följer med. Importance sampling byter fördelning på det man <em>drar</em>, inte på det man <em>räknar ut</em>, och därför gäller bytet $W_T$.</p>
+<p>Man hade kunnat byta på $S_T$ i stället, som är lognormal under $Q$. Det är samma sak omformulerat: att skifta $W_T$ med $\mu$ är exakt att multiplicera medianen av $S_T$ med $e^{\sigma\mu}$. Men kvoten mellan två normaltätheter är enklare än kvoten mellan två lognormala, så man arbetar på nivån där fördelningen är enklast. Att byta på $V_T$ går inte alls: dess fördelning har en punktmassa i noll och en kontinuerlig del ovanför, och kunde man skriva ner den hade man redan haft väntevärdet.</p>
+
+<h2><span>3</span>Bytet av fördelning</h2>
+<p>Skriv $h(w)$ för den diskonterade payoffen som funktion av $w$, och $f$ för tätheten hos $N(0,T)$. Det som söks är</p>
+$$V_0 = \int_{-\infty}^{\infty} h(w)\, f(w)\, dw.$$
+<p>Låt $g$ vara en annan täthet. Multiplicera och dividera med $g$:</p>
+$$V_0 = \int h(w)\,\frac{f(w)}{g(w)}\, g(w)\, dw = \mathbb E_g\!\left[h(W)\,\frac{f(W)}{g(W)}\right].$$
+<p>Högerledet är ett väntevärde under $g$. Dra alltså $W_1, \dots, W_n$ från $g$ och skatta med</p>
+<div class="key">
+$$\hat V_0 = \frac{1}{n}\sum_{i=1}^{n} h(W_i)\,\frac{f(W_i)}{g(W_i)}.$$
+</div>
+<p>Integralen är densamma oavsett $g$. Det som ändras är vilka $w$ som hamnar i stickprovet och hur mycket vart och ett räknas. Kvoten $f/g$ kallas likelihood ratio eller importance weight.</p>
+<p>Med $g$ = tätheten hos $N(\mu, T)$ tar normeringskonstanterna ut varandra och kvoten blir</p>
+$$\frac{f(w)}{g(w)} = \frac{e^{-w^2/2T}}{e^{-(w-\mu)^2/2T}} = \exp\!\Big(-\frac{\mu w}{T} + \frac{\mu^2}{2T}\Big).$$
+<p class="note">Detta är Radon–Nikodym-derivatan i Girsanovs sats: att skifta medelvärdet på en Brownsk rörelse är precis ett byte av drift. Den förskjutna normalfördelningen är alltså inte bara bekväm, den är det naturliga måttbytet i modellen.</p>
+
+<h2><span>4</span>Stödvillkoret: vad som måste täckas</h2>
+<p>Föreläsningen kräver $S_f \subseteq S_g$, att $g$ är positiv överallt där $f$ är det. Det är ett tillräckligt villkor och alltid säkert. Det nödvändiga villkoret är svagare:</p>
+<div class="key">
+$$g(w) > 0 \quad \text{för alla } w \text{ där } h(w)\, f(w) \neq 0.$$
+</div>
+<p>Det är stödet för <em>integranden</em> $h f$ som måste täckas, inte stödet för $f$ ensam. Ett $w$ där $h(w) = 0$ bidrar med noll till integralen oavsett hur ofta eller sällan det dras.</p>
+<p>Här har $f$ stöd på hela reella axeln, så $W_T$ har mycket riktigt sannolikhetsmassa för negativa värden. Men $h(w) = 0$ för alla $w < \mu$, eftersom $S_T \le X$ där. Produkten $h f$ har stöd bara på $[\mu, \infty)$. Den förskjutna normalfördelningen täcker det området med råge, och att den <em>också</em> täcker $(-\infty, \mu)$ är onödigt men ofarligt.</p>
+
+<svg viewBox="0 0 700 230" width="100%" style="max-width:700px; display:block; margin: 16px auto;" aria-label="f, g och integranden h·f">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker>
+  </defs>
+  <line x1="40" y1="190" x2="680" y2="190" stroke="var(--muted)" marker-end="url(#ah)"/>
+  <text x="684" y="212" class="muted" text-anchor="end" font-style="italic">w</text>
+  <!-- f: N(0,T) centered at x=180 -->
+  <path d="M40,190 C120,190 150,40 180,40 C210,40 240,190 320,190" fill="none" stroke="var(--fg)" stroke-width="2"/>
+  <text x="180" y="30" text-anchor="middle"><tspan font-style="italic">f</tspan>: N(0, T)</text>
+  <!-- g: N(mu,T) centered at x=452 -->
+  <path d="M312,190 C392,190 422,40 452,40 C482,40 512,190 592,190" fill="none" stroke="var(--accent)" stroke-width="2"/>
+  <text x="452" y="30" text-anchor="middle" fill="var(--accent)"><tspan font-style="italic">g</tspan>: N(μ, T)</text>
+  <!-- integrand h f: zero left of mu, bump right of mu -->
+  <path d="M40,190 L452,190 C470,190 480,120 500,120 C525,120 545,190 600,190" fill="var(--key)" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="565" y="128" class="muted" text-anchor="start"><tspan font-style="italic">h·f</tspan> (förstorad)</text>
+  <line x1="452" y1="190" x2="452" y2="200" stroke="var(--fg)"/>
+  <text x="452" y="216" text-anchor="middle" font-style="italic">μ</text>
+  <line x1="180" y1="190" x2="180" y2="200" stroke="var(--fg)"/>
+  <text x="180" y="216" text-anchor="middle">0</text>
+  <text x="100" y="175" class="muted"><tspan font-style="italic">h</tspan> = 0 här</text>
+</svg>
+<p class="note">Integranden $h f$ är noll till vänster om $\mu$ och lever i högersvansen av $f$, där $f$ nästan saknar massa. $g$ lägger halva sin massa där.</p>
+<p>Man kunde till och med välja en $g$ som är noll på $(-\infty, \mu)$, till exempel $f$ trunkerad till $[\mu, \infty)$. Det är fortfarande korrekt, och kvoten blir konstanten $f/g = P_f(W > \mu)$. Alla dragningar hamnar då där de gör nytta. Föreläsningen håller sig till den oförskjutna varianten för att slippa normeringskonstanten; tabellen i avsnitt 7 visar att vinsten är måttlig.</p>
+
+<h2><span>5</span>Varför just detta $\mu$</h2>
+<p>Under $g$ har $W_T$ medelvärde $\mu$. Föreläsningen väljer $\mu$ så att aktiekursen vid den typiska dragningen hamnar exakt på lösenpriset:</p>
+$$S_0\, e^{(r - \sigma^2/2)T + \sigma\mu} = X \quad\Longleftrightarrow\quad \mu = \frac{\ln(X/S_0) - (r - \sigma^2/2)\,T}{\sigma} = 4.5315.$$
+<p>$S_T$ är växande i $W_T$ och $W_T$ är symmetrisk kring $\mu$ under $g$, så $P_g(S_T > X) = P_g(W_T > \mu) = \tfrac12$. Hälften av dragningarna bidrar till skattningen i stället för tre på miljonen. Det är därför <code>counter</code> landar på ungefär $n/2$.</p>
+
+<h2><span>6</span>Varför inte ännu längre åt höger</h2>
+<p>Fler träffar över $X$ är inte automatiskt bättre. Vikten $\exp(-\mu w/T + \mu^2/2T)$ är avtagande i $w$: dragningar långt till höger får små vikter, dragningar nära $\mu$ får stora. Skiftar man för långt hamnar nästan alla dragningar där vikten är mikroskopisk, och estimatet domineras av de få som råkar ligga nära $\mu$. Variansen växer igen.</p>
+<p>Den täthet som ger noll varians är $g^*(w) \propto |h(w)|\, f(w)$, alltså integranden själv normerad. Den är noll till vänster om $\mu$ och avtar sedan i takt med $f$:s svans. Att dra från $g^*$ kräver att man känner normeringen, som är just integralen man söker. Den förskjutna normalfördelningen är en approximation som man <em>kan</em> dra från, och medianen vid lösenpriset lägger den nära $g^*$:s tyngdpunkt.</p>
+
+<h2><span>7</span>Kontroll</h2>
+<p>Black–Scholes ger $V_0 = 3.0042 \times 10^{-5}$. Med $n = 10^6$ dragningar per rad (<code>code/html_checks/importance_check.py</code>):</p>
+<div class="scroll"><table>
+<tr><th>Metod</th><th>Skattning</th><th>SE</th><th>PE</th><th>Träffar $S_T > X$</th></tr>
+<tr><td>Vanlig MC, $W_T \sim N(0,T)$</td><td>$4.57 \times 10^{-5}$</td><td>$2.3 \times 10^{-5}$</td><td>49 %</td><td>5</td></tr>
+<tr><td>Skift $\mu/2 = 2.27$</td><td>$3.04 \times 10^{-5}$</td><td>$3.0 \times 10^{-7}$</td><td>0.99 %</td><td>11 845</td></tr>
+<tr><td><strong>Skift $\mu = 4.53$</strong> (föreläsningen)</td><td>$3.00 \times 10^{-5}$</td><td>$4.6 \times 10^{-8}$</td><td>0.15 %</td><td>500 638</td></tr>
+<tr><td>Skift $\mu + 1$</td><td>$3.00 \times 10^{-5}$</td><td>$5.3 \times 10^{-8}$</td><td>0.18 %</td><td>841 807</td></tr>
+<tr><td>Skift $\mu + 3$</td><td>$3.04 \times 10^{-5}$</td><td>$3.5 \times 10^{-7}$</td><td>1.1 %</td><td>998 570</td></tr>
+<tr><td>Trunkerad normal på $[\mu, \infty)$</td><td>$3.00 \times 10^{-5}$</td><td>$3.0 \times 10^{-8}$</td><td>0.10 %</td><td>1 000 000</td></tr>
+</table></div>
+<p>Tre saker syns. För litet skift lämnar för få träffar. För stort skift ger nästan bara träffar men vikterna blir ojämna, och PE stiger igen. Föreläsningens val ligger nära minimum, och den trunkerade varianten som täcker exakt integrandens stöd är bara marginellt bättre.</p>
+
+<h2><span>8</span>När samma $g$ blir fel</h2>
+<p>Resonemanget i avsnitt 4 vänder om integranden lever i vänstersvansen. En <em>put</em> med samma lösenpris har payoff $\max(X - S_T, 0)$, skild från noll för $w < \mu$. Den förskjutna $g$ täcker fortfarande hela axeln, så skattningen är formellt korrekt, men nästan inga dragningar hamnar där integranden är stor och de få som gör det får enorma vikter:</p>
+<div class="scroll"><table>
+<tr><th>Put, $X = 250$</th><th>Skattning</th><th>SE</th></tr>
+<tr><td>Black–Scholes</td><td>142.61</td><td></td></tr>
+<tr><td>Vanlig MC</td><td>142.64</td><td>0.02</td></tr>
+<tr><td>IS med högerskift $\mu$</td><td>74.5</td><td>8.8</td></tr>
+</table></div>
+<p>Efter en miljon dragningar är skattningen fortfarande sju standardfel från sanningen, för de tunga vikterna har inte dykt upp ännu. Konvergensen är garanterad i teorin men värdelös i praktiken. Regeln är alltså inte "täck stödet för $f$" utan "lägg massan där $h f$ är stor, och ingenstans där kvoten $f/g$ kan bli enorm samtidigt som $h \neq 0$".</p>
+
+<h2><span>9</span>Recept</h2>
+<ol class="steps">
+  <li>Hitta slumpkällan: den variabel du faktiskt anropar <code>rnorm</code> eller <code>runif</code> för. Byt fördelning på den.</li>
+  <li>Skriv integranden $h(w) f(w)$ och se var den är skild från noll och var den är stor.</li>
+  <li>Välj $g$ i samma familj som $f$ med en parameter ändrad, så att stickprovet hamnar där integranden är stor och $f/g$ är lätt att räkna. Skift av medelvärdet först, skalning av variansen om svansarna är problemet.</li>
+  <li>Kontrollera att $g > 0$ på stödet för $h f$, och att $f/g$ inte exploderar någonstans där $h \neq 0$.</li>
+  <li>Jämför SE mot vanlig Monte Carlo. Blir den större har $g$ hamnat fel, som i Beta-exemplet med likformig $g$ eller i put-exemplet ovan.</li>
+</ol>
+
+</main>
+</body>
+</html>
