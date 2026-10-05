@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Klassificeringsmodeller – Lecture 3</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.65 Georgia, "Times New Roman", serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); margin-right: 16px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 { font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px; border-top: 1px solid var(--rule); }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  h3 { font-size: 1.05rem; margin: 28px 0 8px; }
+  .key { background: var(--key); border-left: 3px solid var(--accent); padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0; }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .scroll { overflow-x: auto; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.93rem; font-family: -apple-system, "Segoe UI", sans-serif; background: var(--card); }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; vertical-align: top; }
+  th:first-child, td:first-child { text-align: left; }
+  td.l { text-align: left; white-space: normal; }
+  th { color: var(--muted); font-weight: 600; }
+  code { font-size: 0.9em; }
+  ol.steps { padding-left: 0; list-style: none; counter-reset: s; }
+  ol.steps > li { counter-increment: s; position: relative; padding: 4px 0 4px 44px; margin: 12px 0; }
+  ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 6px; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--accent); color: var(--accent); font: 600 0.85rem/26px -apple-system, "Segoe UI", sans-serif; text-align: center; }
+  .toc { font: 0.92rem -apple-system, "Segoe UI", sans-serif; columns: 2; column-gap: 24px; margin: 0 0 24px; padding-left: 20px; }
+  .toc a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a><a href="logistic.html">Träna en logistisk modell →</a></nav>
+
+<h1>Klassificeringsmodellerna i Lecture 3</h1>
+<p class="sub">Logistisk regression, LDA, QDA och KNN, hur de hänger ihop, och när var och en vinner. Följer <code>pdf/Lecture3_Classification.pdf</code> (ISLP kapitel 4) med kontroll på Default-datat.</p>
+
+<ol class="toc">
+  <li><a href="#s1">Varför inte linjär regression</a></li>
+  <li><a href="#s2">Logistisk regression</a></li>
+  <li><a href="#s3">Bayes sats: generativa modeller</a></li>
+  <li><a href="#s4">LDA</a></li>
+  <li><a href="#s5">Tröskel, confusion matrix, ROC</a></li>
+  <li><a href="#s6">QDA</a></li>
+  <li><a href="#s7">KNN</a></li>
+  <li><a href="#s8">Samma modell, olika skattning</a></li>
+  <li><a href="#s9">Simuleringarna: vem vinner när</a></li>
+  <li><a href="#s10">Kontroll på Default</a></li>
+</ol>
+
+<h2 id="s1"><span>1</span>Varför inte linjär regression</h2>
+<p>Responsen $Y$ är kategorisk. Att koda klasserna som $0, 1, 2, \dots$ och köra minsta kvadrat påstår att avståndet mellan klass 0 och 1 är lika stort som mellan 1 och 2, vilket saknar mening för <em>Asian/European/African</em> och är tveksamt även för ordnade klasser som <em>mild/moderate/severe</em>.</p>
+<p>Med två klasser kodade $0/1$ ger linjär regression samma klassgränser som LDA, men den skattade "sannolikheten" $\hat\beta^\top x$ hamnar utanför $[0,1]$ för extrema $x$ (figuren på sidan 10 i föreläsningen). Kärnan i alla metoder nedan är i stället att modellera</p>
+$$p_k(x) = P(Y = k \mid X = x)$$
+<p>och klassificera till den klass som har störst $p_k(x)$. Det är Bayes-klassificeraren, som minimerar felfrekvensen om sannolikheterna vore kända. Metoderna skiljer sig i <em>hur</em> $p_k(x)$ skattas.</p>
+
+<h2 id="s2"><span>2</span>Logistisk regression</h2>
+<h3>Modellen</h3>
+<p>Med $x = (1, x_1, \dots, x_p)^\top$ och $Y \in \{0, 1\}$:</p>
+<div class="key">
+$$P(Y = 1 \mid X = x) = \frac{1}{1 + e^{-\beta^\top x}}, \qquad
+\log\frac{P(Y=1\mid x)}{P(Y=0\mid x)} = \beta^\top x.$$
+</div>
+<p>Log-oddsen (logiten) är linjär i $x$. En enhets ökning i $x_j$ ökar log-oddsen med $\beta_j$ och multiplicerar oddsen med $e^{\beta_j}$. Sannolikheten själv ändras olika mycket beroende på var på S-kurvan man befinner sig.</p>
+
+<h3>Skattning: maximum likelihood</h3>
+<p>Observationerna är oberoende, så likelihooden är produkten av $p_i^{y_i}(1-p_i)^{1-y_i}$, vilket med $p_i = \sigma(\beta^\top x_i)$ ger log-likelihooden</p>
+$$\ell(\beta) = \sum_{i=1}^{n}\Big[y_i\,\beta^\top x_i - \log\big(1 + e^{\beta^\top x_i}\big)\Big].$$
+<p>Gradient och Hessian:</p>
+$$\nabla\ell = \sum_i (y_i - p_i)\,x_i = X^\top(y - p), \qquad
+H = -\sum_i p_i(1-p_i)\,x_i x_i^\top = -X^\top W X,$$
+<p>med $W = \mathrm{diag}\big(p_i(1-p_i)\big)$. Newton–Raphson-steget kan skrivas som en viktad minsta kvadrat-lösning,</p>
+$$\beta^{new} = (X^\top W X)^{-1} X^\top W z, \qquad z = X\beta^{old} + W^{-1}(y - p),$$
+<p>därav namnet <em>iteratively reweighted least squares</em>. Detaljerna finns på sidorna <a href="logistic.html">Träna en logistisk modell</a>, <a href="hessian.html">Hessianen</a> och <a href="newton.html">Newton–Raphson</a>.</p>
+
+<h3>Default-exemplet (tabell 4.1 till 4.3)</h3>
+<div class="scroll"><table>
+<tr><th>Modell</th><th>Koefficient</th><th>Skattning</th><th>SE</th><th>z</th><th>p</th></tr>
+<tr><td><code>default ~ balance</code></td><td>Intercept</td><td>−10.6513</td><td>0.3612</td><td>−29.5</td><td>&lt; 0.0001</td></tr>
+<tr><td></td><td>balance</td><td>0.0055</td><td>0.0002</td><td>24.9</td><td>&lt; 0.0001</td></tr>
+<tr><td><code>default ~ student</code></td><td>Intercept</td><td>−3.5041</td><td>0.0707</td><td>−49.6</td><td>&lt; 0.0001</td></tr>
+<tr><td></td><td>student[Yes]</td><td>0.4049</td><td>0.1150</td><td>3.52</td><td>0.0004</td></tr>
+<tr><td><code>default ~ balance + income + student</code></td><td>Intercept</td><td>−10.8690</td><td>0.4923</td><td>−22.1</td><td>&lt; 0.0001</td></tr>
+<tr><td></td><td>balance</td><td>0.0057</td><td>0.0002</td><td>24.7</td><td>&lt; 0.0001</td></tr>
+<tr><td></td><td>income (tusental)</td><td>0.0030</td><td>0.0082</td><td>0.37</td><td>0.7115</td></tr>
+<tr><td></td><td>student[Yes]</td><td>−0.6468</td><td>0.2362</td><td>−2.74</td><td>0.0062</td></tr>
+</table></div>
+<p>Prediktion: $\hat P(\text{default} \mid \text{balance} = 1000) = \sigma(-10.6513 + 0.0055 \cdot 1000) = 0.0058$, och vid balance $= 2000$ blir det $0.586$. Studenter ensamt: $0.0431$ mot $0.0292$ för icke-studenter.</p>
+
+<h3>Paradoxen med student</h3>
+<p>Ensam har <em>student</em> positiv koefficient, tillsammans med <em>balance</em> negativ. Båda är rätt, de svarar på olika frågor. Studenter har i genomsnitt högre skuld, och skuld driver default, så <em>utan</em> att kontrollera för balance defaultar studenter oftare. Vid <em>samma</em> balance och income är en student mindre benägen att defaulta än en icke-student. Det är confounding: <em>student</em> och <em>balance</em> är positivt korrelerade, och den enkla modellen tillskriver student en effekt som egentligen kommer från balance. Samma fenomen som <code>newspaper</code> i Advertising-datat i kapitel 3.</p>
+
+<h3>Varianter</h3>
+<p>Sigmoiden är fördelningsfunktionen för den logistiska fördelningen. Byter man till normalfördelningens $\Phi$ får man <em>probit</em>. För $K > 2$ klasser generaliseras modellen med softmax: $P(Y=k\mid x) = e^{\beta_k^\top x}/\sum_l e^{\beta_l^\top x}$.</p>
+
+<h2 id="s3"><span>3</span>Bayes sats: generativa modeller</h2>
+<p>Logistisk regression modellerar $P(Y \mid X)$ direkt. Ett annat angreppssätt är att modellera hur $X$ ser ut <em>inom</em> varje klass och vända på det med Bayes sats. Låt $\pi_k = P(Y = k)$ vara klassens andel och $f_k(x) = f(x \mid Y = k)$ dess täthet. Då är</p>
+<div class="key">
+$$p_k(x) = P(Y = k \mid X = x) = \frac{\pi_k\, f_k(x)}{\sum_{j=1}^{K}\pi_j\, f_j(x)}.$$
+</div>
+<p>Nämnaren är gemensam för alla $k$, så det räcker att jämföra täljarna $\pi_k f_k(x)$. LDA och QDA är precis detta med normalfördelade $f_k$; de skiljer sig bara i vad de antar om kovariansen.</p>
+
+<h2 id="s4"><span>4</span>Linear discriminant analysis</h2>
+<h3>Antagande</h3>
+$$X \mid Y = k \;\sim\; N(\mu_k, \Sigma), \qquad
+f_k(x) = \frac{1}{(2\pi)^{p/2}|\Sigma|^{1/2}}\exp\!\Big(-\tfrac12 (x-\mu_k)^\top\Sigma^{-1}(x-\mu_k)\Big).$$
+<p>Varje klass har egen mittpunkt $\mu_k$ men <em>samma</em> kovarians $\Sigma$. Det är den gemensamma $\Sigma$ som gör gränserna linjära.</p>
+
+<h3>Diskriminantfunktionen</h3>
+<p>Ta logaritmen av $\pi_k f_k(x)$ och stryk allt som inte beror på $k$. Termen $x^\top\Sigma^{-1}x$ är gemensam för alla klasser och försvinner; kvar blir</p>
+<div class="key">
+$$\delta_k(x) = \mu_k^\top\Sigma^{-1}x - \tfrac12\,\mu_k^\top\Sigma^{-1}\mu_k + \log\pi_k.$$
+</div>
+<p>Klassificera till den klass som har störst $\delta_k(x)$. Funktionen är linjär i $x$, så gränsen $\delta_k(x) = \delta_l(x)$ är ett hyperplan. I en dimension med två klasser och $\pi_1 = \pi_2$ hamnar gränsen mitt emellan medelvärdena, $x = (\mu_1 + \mu_2)/2$.</p>
+
+<h3>Skattning</h3>
+<p>Parametrarna byts mot sina stickprovsanaloger:</p>
+$$\hat\mu_k = \frac{1}{n_k}\sum_{i: y_i = k} x_i, \qquad
+\hat\Sigma = \frac{1}{n - K}\sum_{k=1}^{K}\sum_{i: y_i = k}(x_i - \hat\mu_k)(x_i - \hat\mu_k)^\top, \qquad
+\hat\pi_k = \frac{n_k}{n}.$$
+<p>$\hat\Sigma$ är den <em>poolade</em> kovariansen: avvikelserna tas från respektive klassmedelvärde, men summeras över alla klasser till en enda matris. Antalet parametrar är $Kp$ medelvärden plus $p(p+1)/2$ kovarianser.</p>
+
+<h3>Default-exemplet</h3>
+<p>LDA på balance och student ger träningsfel $2.75\,\%$. Det låter bra tills man ser att bara $3.33\,\%$ defaultar: klassificeraren "ingen defaultar" har fel $3.33\,\%$. Confusion-matrisen (tabell 4.4) visar var felen sitter:</p>
+<div class="scroll"><table>
+<tr><th>Sann \ predikterad</th><th>No</th><th>Yes</th><th>Totalt</th></tr>
+<tr><td>No</td><td>9 644</td><td>23</td><td>9 667</td></tr>
+<tr><td>Yes</td><td>252</td><td>81</td><td>333</td></tr>
+<tr><td>Totalt</td><td>9 896</td><td>104</td><td>10 000</td></tr>
+</table></div>
+<p>Bland dem som defaultar missas $252/333 = 75.7\,\%$. <strong>Sensitiviteten</strong>, andelen defaulters som fångas, är bara $24.3\,\%$. <strong>Specificiteten</strong>, andelen icke-defaulters som klassas rätt, är $99.8\,\%$. Klassificeraren är bra på majoritetsklassen och dålig på den som kreditkortsbolaget bryr sig om.</p>
+
+<h2 id="s5"><span>5</span>Tröskel, confusion matrix och ROC</h2>
+<p>Bayes-regeln säger "Yes" när $P(\text{Yes} \mid x) > 0.5$. Ingenting tvingar oss att använda $0.5$. Sänker man tröskeln till $0.2$ fångas fler defaulters till priset av fler falsklarm (tabell 4.5):</p>
+<div class="scroll"><table>
+<tr><th>Tröskel</th><th>Totalt fel</th><th>FN (missade defaulters)</th><th>FP (falska larm)</th><th>Sensitivitet</th><th>Specificitet</th></tr>
+<tr><td>0.5</td><td>2.75 %</td><td>252</td><td>23</td><td>24.3 %</td><td>99.8 %</td></tr>
+<tr><td>0.2</td><td>3.73 %</td><td>138</td><td>235</td><td>58.6 %</td><td>97.6 %</td></tr>
+</table></div>
+<p>Det totala felet <em>ökar</em>, men sensitiviteten mer än fördubblas. Vilket som är bättre beror på kostnaden för de två feltyperna, inte på statistiken. Figur 4.7 visar de tre felkurvorna som funktion av tröskeln; figur 4.8, ROC-kurvan, visar sensitivitet mot $1 - $ specificitet för alla trösklar samtidigt. Arean under kurvan, AUC, sammanfattar klassificerarens förmåga oberoende av tröskel; slumpen ger $0.5$, LDA på Default ger $0.95$.</p>
+<div class="scroll"><table>
+<tr><th>Namn</th><th>Definition</th><th>Synonymer</th></tr>
+<tr><td>False positive rate</td><td>FP / N</td><td class="l">typ I-fel, $1 -$ specificitet</td></tr>
+<tr><td>True positive rate</td><td>TP / P</td><td class="l">sensitivitet, recall, power, $1 -$ typ II-fel</td></tr>
+<tr><td>Positive predictive value</td><td>TP / P*</td><td class="l">precision, $1 -$ false discovery rate</td></tr>
+<tr><td>Negative predictive value</td><td>TN / N*</td><td class="l"></td></tr>
+</table></div>
+<p class="note">N och P är antalet sant negativa respektive positiva; N* och P* antalet <em>predikterade</em> negativa respektive positiva.</p>
+
+<h2 id="s6"><span>6</span>Quadratic discriminant analysis</h2>
+<p>Samma som LDA men med klassspecifik kovarians, $X \mid Y = k \sim N(\mu_k, \Sigma_k)$. Termen $x^\top\Sigma_k^{-1}x$ är nu olika för olika $k$ och kan inte strykas:</p>
+<div class="key">
+$$\delta_k(x) = -\tfrac12\,x^\top\Sigma_k^{-1}x + x^\top\Sigma_k^{-1}\mu_k - \tfrac12\,\mu_k^\top\Sigma_k^{-1}\mu_k - \tfrac12\log|\Sigma_k| + \log\pi_k.$$
+</div>
+<p>Kvadratisk i $x$, så klassgränserna är kägelsnitt. Priset är $K\,p(p+1)/2$ kovariansparametrar i stället för $p(p+1)/2$: med $p = 50$ och $K = 3$ är det $3\,825$ mot $1\,275$. QDA har lägre bias när kovarianserna verkligen skiljer sig, men högre varians. Figur 4.9: är Bayes-gränsen linjär ($\Sigma_1 = \Sigma_2$) approximerar LDA den bättre; är den krökt ($\Sigma_1 \neq \Sigma_2$) vinner QDA. Med litet $n$ kan LDA vinna även när QDA:s antagande är det rätta, eftersom variansen dominerar.</p>
+
+<h2 id="s7"><span>7</span>K-nearest neighbours</h2>
+<p>Helt icke-parametrisk: ingen modell för $f_k$ eller för log-oddsen. Skatta $p_k(x_0)$ som andelen av de $K$ närmaste grannarna till $x_0$ som tillhör klass $k$, och klassificera till majoriteten. $K = 1$ ger träningsfel noll och maximal varians; stort $K$ ger nästan konstanta gränser och hög bias. $K$ väljs med korsvalidering. KNN kan följa vilken gränsform som helst men behöver mycket data, och mycket mer ju fler prediktorer, eftersom "närmaste granne" blir avlägsen i höga dimensioner. Skalan på prediktorerna spelar roll, till skillnad från i de tre andra metoderna: balance i dollar och student i $0/1$ måste standardiseras innan avstånd räknas.</p>
+
+<h2 id="s8"><span>8</span>Samma modell, olika skattning</h2>
+<p>Med två klasser kan alla fyra beskrivas genom formen på log-oddsen $\log\big(p_2(x)/p_1(x)\big)$:</p>
+<div class="scroll"><table>
+<tr><th>Metod</th><th>Log-odds</th><th>Skattas via</th><th>Antaganden</th></tr>
+<tr><td>Logistisk regression</td><td class="l">linjär i $x$</td><td class="l">maximum likelihood på $P(Y \mid X)$</td><td class="l">bara formen på log-oddsen</td></tr>
+<tr><td>LDA</td><td class="l">linjär i $x$</td><td class="l">stickprovsmedel, poolad kovarians, andelar</td><td class="l">$X \mid Y$ normal med gemensam $\Sigma$</td></tr>
+<tr><td>QDA</td><td class="l">kvadratisk i $x$</td><td class="l">klassvisa medel och kovarianser</td><td class="l">$X \mid Y$ normal med egen $\Sigma_k$</td></tr>
+<tr><td>KNN</td><td class="l">ingen form</td><td class="l">lokala andelar</td><td class="l">inga, men kräver mycket data och rätt $K$</td></tr>
+</table></div>
+<p>Logistisk regression och LDA antar samma linjära form men skattar koefficienterna olika, och ger därför olika resultat. LDA använder normalantagandet och blir effektivare när det stämmer, särskilt när klasserna är väl separerade, där logistisk regression blir instabil. Logistisk regression är robustare när $X$ inte är normal, till exempel med tunga svansar eller kategoriska prediktorer, eftersom den inte modellerar $X$ alls.</p>
+
+<h2 id="s9"><span>9</span>Simuleringarna: vem vinner när</h2>
+<p>Figur 4.10 och 4.11 jämför testfel över sex scenarier med två prediktorer. Sammanfattning av sidorna 51 till 56:</p>
+<div class="scroll"><table>
+<tr><th>Scenario</th><th>Data</th><th>Sann gräns</th><th>Bäst</th><th>Sämst</th><th>Varför</th></tr>
+<tr><td>1</td><td class="l">normal, okorrelerade, 20 per klass</td><td class="l">linjär</td><td class="l">LDA</td><td class="l">KNN</td><td class="l">LDA:s modell är den sanna; KNN betalar varians utan biasvinst; QDA onödigt flexibel</td></tr>
+<tr><td>2</td><td class="l">som 1, korrelation 0.5</td><td class="l">linjär</td><td class="l">LDA</td><td class="l">KNN</td><td class="l">samma bild</td></tr>
+<tr><td>3</td><td class="l">$t$-fördelade, 50 per klass</td><td class="l">linjär</td><td class="l">logistisk</td><td class="l">QDA</td><td class="l">tunga svansar bryter normalantagandet; logistisk regression påverkas inte, QDA rasar</td></tr>
+<tr><td>4</td><td class="l">normal, korrelation +0.5 i klass 1 och −0.5 i klass 2</td><td class="l">kvadratisk</td><td class="l">QDA</td><td class="l">linjära</td><td class="l">QDA:s modell är den sanna</td></tr>
+<tr><td>5</td><td class="l">normal; respons från logit i $X_1^2, X_2^2, X_1X_2$</td><td class="l">kvadratisk</td><td class="l">QDA, sedan KNN-CV</td><td class="l">linjära</td><td class="l">gränsen är kvadratisk men $X$ är inte QDA-fördelad; KNN hänger med</td></tr>
+<tr><td>6</td><td class="l">som 5 med mer komplicerad funktion</td><td class="l">icke-linjär</td><td class="l">KNN-CV</td><td class="l">KNN-1</td><td class="l">ingen parametrisk form räcker; men KNN utan rätt $K$ är värst av alla</td></tr>
+</table></div>
+<p>Läsningen: ingen metod dominerar. När den sanna gränsen är linjär vinner de linjära metoderna, LDA om normalantagandet håller och logistisk regression annars. När gränsen är måttligt krökt vinner QDA. När den är komplicerad krävs något icke-parametriskt, men bara om flexibiliteten väljs rätt. Scenario 6 visar att "flexiblare" inte betyder "bättre": KNN-1 är sämst och KNN-CV bäst i samma panel.</p>
+
+<h2 id="s10"><span>10</span>Kontroll på Default</h2>
+<p>Alla metoder på balance och student, träningsdata, tröskel $0.5$ (<code>code/html_checks/classifiers_check.py</code>):</p>
+<div class="scroll"><table>
+<tr><th>Metod</th><th>Fel</th><th>FP</th><th>FN</th><th>Sensitivitet</th><th>Specificitet</th><th>AUC</th></tr>
+<tr><td>Ingen defaultar</td><td>3.33 %</td><td>0</td><td>333</td><td>0</td><td>100 %</td><td>0.50</td></tr>
+<tr><td>Logistisk (balance + income + student)</td><td>2.68 %</td><td>40</td><td>228</td><td>31.5 %</td><td>99.6 %</td><td>0.95</td></tr>
+<tr><td>LDA</td><td>2.75 %</td><td>23</td><td>252</td><td>24.3 %</td><td>99.8 %</td><td>0.95</td></tr>
+<tr><td>LDA, tröskel 0.2</td><td>3.74 %</td><td>236</td><td>138</td><td>58.6 %</td><td>97.6 %</td><td>0.95</td></tr>
+<tr><td>QDA</td><td>2.74 %</td><td>30</td><td>244</td><td>26.7 %</td><td>99.7 %</td><td>0.95</td></tr>
+<tr><td>Naive Bayes</td><td>2.87 %</td><td>49</td><td>238</td><td>28.5 %</td><td>99.5 %</td><td>0.95</td></tr>
+<tr><td>KNN, $K = 1$</td><td>0.00 %</td><td>0</td><td>0</td><td>100 %</td><td>100 %</td><td>1.00</td></tr>
+<tr><td>KNN, $K = 10$</td><td>2.62 %</td><td>55</td><td>207</td><td>37.8 %</td><td>99.4 %</td><td>0.97</td></tr>
+</table></div>
+<p>LDA-raderna återger föreläsningens tabell 4.4 och 4.5 exakt (FP 236 mot 235 är avrundning i sannolikheterna). Alla parametriska metoder ger nästan samma fel och samma AUC, för Default-datat har en nästan linjär gräns och normalantagandet är rimligt för balance. KNN med $K = 1$ har noll träningsfel av samma skäl som scenario 6: det är ren memorering och säger inget om testfel. Naive Bayes är LDA med diagonal $\Sigma$, alltså antagandet att balance och student är oberoende inom klass; den kommer i ISLP avsnitt 4.4.4 och nämns inte i föreläsningen.</p>
+
+<h2><span>11</span>Recept vid val av metod</h2>
+<ol class="steps">
+  <li>Är det ett klassificeringsproblem med $K$ klasser? Modellera $P(Y = k \mid x)$, inte $Y$ som tal.</li>
+  <li>Titta på prediktorerna inom klass. Ser de normalfördelade ut med liknande spridning: LDA. Olika spridning och gott om data: QDA. Kategoriska eller tungsvansade prediktorer: logistisk regression.</li>
+  <li>Är gränsen uppenbart krokig och $n$ stort relativt $p$: prova KNN, välj $K$ med korsvalidering, standardisera prediktorerna.</li>
+  <li>Välj tröskel efter kostnaden för FP och FN, inte efter totalfelet. Rapportera sensitivitet och specificitet, eller AUC.</li>
+  <li>Jämför på testdata eller med korsvalidering. Träningsfel säger inget för flexibla metoder.</li>
+</ol>
+
+</main>
+</body>
+</html>
