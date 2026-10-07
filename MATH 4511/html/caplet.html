@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caplet som bondoption</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.65 Georgia, "Times New Roman", serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); margin-right: 16px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 { font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px; border-top: 1px solid var(--rule); }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  .key { background: var(--key); border-left: 3px solid var(--accent); padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0; }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .scroll { overflow-x: auto; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.93rem; font-family: -apple-system, "Segoe UI", sans-serif; background: var(--card); }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; }
+  tr.hl td { background: var(--key); }
+  code { font-size: 0.9em; }
+  svg text { font: 13px -apple-system, "Segoe UI", sans-serif; fill: var(--fg); }
+  svg .muted { fill: var(--muted); }
+  svg .acc { fill: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a></nav>
+
+<h1>Caplet som bondoption</h1>
+<p class="sub">Vad "2-year caplet on 1-year spot rate" betyder, varför den motsvarar en put med löptid 1 på en 2-årig nollkupongare, och hur strike och face value skalas. Föreläsning 2, exempel 20 (s. 109–112).</p>
+
+<h2><span>1</span>Uppgiften</h2>
+<p>Marknaden har europeiska optioner på en 2-årig nollkupongare med face value 100 (s. 109):</p>
+<div class="scroll"><table>
+<tr><th>Option</th><th>Typ</th><th>Löptid</th><th>Strike</th><th>Pris</th></tr>
+<tr><td>A</td><td>call</td><td>1</td><td>95</td><td>2.80</td></tr>
+<tr><td>B</td><td>call</td><td>1</td><td>98</td><td>1.30</td></tr>
+<tr><td>C</td><td>call</td><td>1.5</td><td>95</td><td>5.20</td></tr>
+<tr class="hl"><td>D</td><td>call</td><td>1.5</td><td>98</td><td>2.90</td></tr>
+<tr class="hl"><td>E</td><td>put</td><td>1</td><td>95</td><td>3.43</td></tr>
+<tr><td>F</td><td>put</td><td>1</td><td>98</td><td>4.788</td></tr>
+<tr><td>G</td><td>put</td><td>1.5</td><td>95</td><td>3.40</td></tr>
+<tr><td>H</td><td>put</td><td>1.5</td><td>98</td><td>3.88</td></tr>
+</table></div>
+<p>Sökt: (a) en 2-årig caplet på 1-årig spotränta, $K = 5.263\,\%$, $N = 5000$, och (b) en 2-årig floorlet på 6-månaders spotränta, $K = 4.1216\,\%$, $N = 10\,000$. Båda strike-räntorna är annual effective.</p>
+
+<h2><span>2</span>Vad namnet betyder</h2>
+<p>"2-year" är när caplet:en <em>betalar ut</em>, $T_2 = 2$. "On 1-year spot rate" är räntan för den 1-åriga perioden som slutar där, alltså $R[1,2]$. Räntan fastställs vid $T_1 = 1$ och betalas i efterskott vid $T_2$:</p>
+$$V_2 = \max\big(N R[1,2] - N K,\; 0\big).$$
+<p>Caplet:en skyddar alltså mot att räntan för år 2 blir högre än $K$, som ett tak på en rörlig låneränta.</p>
+
+<svg viewBox="0 0 700 150" width="100%" style="max-width:700px; display:block; margin: 16px auto;" aria-label="Tidslinje: idag, fastställande vid 1, betalning vid 2">
+  <line x1="60" y1="70" x2="640" y2="70" stroke="var(--muted)" stroke-width="1.5"/>
+  <line x1="80" y1="60" x2="80" y2="80" stroke="var(--fg)" stroke-width="2"/>
+  <line x1="350" y1="60" x2="350" y2="80" stroke="var(--accent)" stroke-width="2"/>
+  <line x1="620" y1="60" x2="620" y2="80" stroke="var(--fg)" stroke-width="2"/>
+  <text x="80" y="50" text-anchor="middle">t = 0</text>
+  <text x="350" y="50" text-anchor="middle" class="acc">T₁ = 1</text>
+  <text x="620" y="50" text-anchor="middle">T₂ = 2</text>
+  <text x="80" y="102" text-anchor="middle" class="muted">priset bestäms</text>
+  <text x="350" y="102" text-anchor="middle" class="muted">R[1,2] fastställs</text>
+  <text x="350" y="120" text-anchor="middle" class="muted">bondoptionen förfaller</text>
+  <text x="620" y="102" text-anchor="middle" class="muted">caplet betalar ut</text>
+  <text x="620" y="120" text-anchor="middle" class="muted">nollkupongaren förfaller</text>
+  <path d="M350,135 L620,135" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="485" y="148" text-anchor="middle" class="acc">räntan R[1,2] gäller här</text>
+</svg>
+
+<p>$R[1,2]$ är den 1-åriga spoträntan <em>som gäller vid tid 1</em>. Den är okänd idag och därför slumpmässig, och det är det som gör caplet:en till en option. Den ska inte blandas ihop med dagens 2-årsränta $s_2$ eller med forwardräntan $f[1,2]$. Båda är kända idag.</p>
+
+<h2><span>3</span>Från caplet till put</h2>
+<p>Diskontera utbetalningen från $T_2$ till $T_1$ med räntan som gäller för just den perioden:</p>
+$$V_1 = \frac{\max\big(N R[1,2] - N K,\, 0\big)}{1 + R[1,2]} = \max\!\Big(\frac{N(1+R) - N(1+K)}{1+R},\; 0\Big) = \max\!\Big(N - \frac{N(1+K)}{1+R[1,2]},\; 0\Big).$$
+<p>Bråket $N(1+K)/(1+R[1,2])$ är priset vid tid 1 på en nollkupongare som förfaller vid 2 med face value $N(1+K)$. Uttrycket är alltså utbetalningen från en put:</p>
+<div class="key">
+<p>Caplet:en = en <strong>put med löptid $T_1 = 1$</strong> och <strong>strike $N$</strong> på en <strong>nollkupongare med löptid $T_2 = 2$ och face value $N(1+K)$</strong>.</p>
+</div>
+<p><strong>Varför löptid 1 och inte 2?</strong> Vid $T = 2$ förfaller obligationen och är värd exakt sin face value. Ingen osäkerhet finns kvar, så en put som förfaller då vore meningslös. Osäkerheten sitter i $R[1,2]$, som avgörs vid tid 1. Optionen måste förfalla just då.</p>
+
+<h2><span>4</span>Skalning: strike och face value följs åt</h2>
+<p>Putens utbetalning är homogen av grad 1. Multiplicerar man både strike och face value med $\lambda$ multipliceras hela utbetalningen med $\lambda$:</p>
+$$\max\!\Big(\lambda X - \frac{\lambda F_v}{1+R},\; 0\Big) = \lambda \max\!\Big(X - \frac{F_v}{1+R},\; 0\Big).$$
+<p>En put med strike $\lambda X$ på face value $\lambda F_v$ är alltså värd exakt $\lambda$ puts med strike $X$ på face value $F_v$. Det går inte att skala bara det ena.</p>
+<p>Marknadens optioner har face value 100, så välj $\lambda$ så att face value blir 100:</p>
+$$\lambda = \frac{N(1+K)}{100} = \frac{5000 \times 1.05263}{100} = 52.6315.$$
+<div class="scroll"><table>
+<tr><th></th><th>Caplet:ens put</th><th>Efter division med $\lambda$</th></tr>
+<tr><td>Face value</td><td>$N(1+K) = 5263.15$</td><td>$100$</td></tr>
+<tr><td>Strike</td><td>$N = 5000$</td><td>$\dfrac{100}{1+K} = 95$</td></tr>
+<tr><td>Antal</td><td>1</td><td>$\lambda = 52.6315$</td></tr>
+</table></div>
+$$V_1 = 52.6315 \max\!\Big(95 - \frac{100}{1+R[1,2]},\; 0\Big).$$
+<p>Det är 52.6315 st 1-åriga puts med strike 95, alltså option E. Enligt no-arbitrage-principen blir priset idag</p>
+<div class="key">
+$$V_0 = 52.6315 \times 3.43 \approx 180.53.$$
+</div>
+<p class="note">Strike blir exakt 95 bara om $K = 100/95 - 1 = 5.26316\,\%$. Med det avrundade $K = 5.263\,\%$ blir den 95.0001, vilket inte påverkar svaret.</p>
+
+<h2><span>5</span>Varför inte option F?</h2>
+<p>Skalningen låser förhållandet mellan strike och face value, och det bestäms av $K$:</p>
+$$\frac{\text{strike}}{\text{face value}} = \frac{N}{N(1+K)} = \frac{1}{1+K}.$$
+<p>Strike är alltså inget man väljer. Den följer ur caplet:ens ränta. Varje 1-årig put i tabellen motsvarar en bestämd caplet-ränta:</p>
+<div class="scroll"><table>
+<tr><th>Put</th><th>Strike / face</th><th>Motsvarande $K = 100/X - 1$</th><th>Caplet-pris, $N = 5000$</th></tr>
+<tr class="hl"><td>E, $X = 95$</td><td>0.95</td><td>5.263 %</td><td>$52.63 \times 3.43 = 180.53$</td></tr>
+<tr><td>F, $X = 98$</td><td>0.98</td><td>2.041 %</td><td>$51.02 \times 4.788 = 244.29$</td></tr>
+</table></div>
+<p>F replikerar en caplet med strike-räntan 2.04 %. Den betalar ut redan när $R[1,2] > 2.04\,\%$, och den försäkringen är dyrare. Använder man F med skalningen för 5.263 % stämmer utbetalningarna inte. Vid till exempel $R[1,2] = 4\,\%$ betalar caplet:en ingenting, medan $52.63$ puts av typ F betalar $97.17$ vid tid 1.</p>
+<p>Det är därför uppgiften har så udda strike-räntor. 5.263 % och 4.1216 % är valda så att $100/(1+K)$ blir exakt 95 respektive 98 och matchar en option i tabellen. Med $K = 4\,\%$ hade strike blivit $96.15$, och den optionen finns inte.</p>
+
+<h2><span>6</span>Samma metod för floorlet:en i (b)</h2>
+<p>"2-year floorlet on 6-month spot rate" bygger på $R[1.5, 2]$. Räntan fastställs vid $1.5$ och betalas vid $2$. Strike-räntan måste först göras om till halvårsränta:</p>
+$$K[1.5,2] = 1.041216^{1/2} - 1 = 2.04\,\%.$$
+<p>Diskontera till tid 1.5 på samma sätt. För en floor vänds tecknet, och det ger en <em>call</em>:</p>
+$$V_{1.5} = \max\!\Big(\frac{N(1+K)}{1+R[1.5,2]} - N,\; 0\Big) = 102.04 \max\!\Big(\frac{100}{1+R[1.5,2]} - 98,\; 0\Big).$$
+<p>Det är 102.04 st 1.5-åriga calls med strike 98, alltså option D:</p>
+<div class="key">
+$$V_0 = 102.04 \times 2.9 = 295.92.$$
+</div>
+<div class="scroll"><table>
+<tr><th></th><th>Caplet (a)</th><th>Floorlet (b)</th></tr>
+<tr><td>Ränta</td><td>$R[1,2]$</td><td>$R[1.5,2]$</td></tr>
+<tr><td>Bondoption</td><td>put</td><td>call</td></tr>
+<tr><td>Optionens löptid</td><td>$T_1 = 1$</td><td>$T_1 = 1.5$</td></tr>
+<tr><td>$K$ per period</td><td>5.263 %</td><td>2.04 %</td></tr>
+<tr><td>Strike $100/(1+K)$</td><td>95</td><td>98</td></tr>
+<tr><td>Antal $\lambda = N(1+K)/100$</td><td>52.6315</td><td>102.04</td></tr>
+<tr><td>Pris</td><td>180.53</td><td>295.92</td></tr>
+</table></div>
+
+<h2><span>7</span>Kontroll</h2>
+<p>Skriptet <code>code/html_checks/caplet_check.py</code> jämför caplet:ens och floorlet:ens värde med $\lambda$ bondoptioner på ett rutnät av framtida räntor ($R \in [0, 15\,\%]$ respektive $[0, 8\,\%]$). Största skillnaden är $10^{-12}$, alltså avrundningsfel. Priserna stämmer med föreläsningen (s. 111–112).</p>
+
+<h2><span>8</span>Recept</h2>
+<ol>
+  <li>Läs ut räntan: "$T_2$-year cap/floorlet on $\tau$-period spot rate" ger $R[T_2 - \tau,\, T_2]$, med fastställande vid $T_1 = T_2 - \tau$.</li>
+  <li>Gör om $K$ till räntan för en period av längden $\tau$.</li>
+  <li>Diskontera utbetalningen från $T_2$ till $T_1$ med $1 + R[T_1, T_2]$.</li>
+  <li>Skriv om till en bondoption med löptid $T_1$ på en nollkupongare med löptid $T_2$: caplet ger en put, floorlet ger en call.</li>
+  <li>Bryt ut $\lambda = N(1+K)/100$. Strike blir $100/(1+K)$. Leta upp den optionen i tabellen och multiplicera dess pris med $\lambda$.</li>
+</ol>
+
+</main>
+</body>
+</html>
