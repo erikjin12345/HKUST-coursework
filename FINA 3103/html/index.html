@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FINA 3103 – anteckningar</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.65 Georgia, "Times New Roman", serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  ol.toc { padding-left: 0; list-style: none; margin: 0; }
+  ol.toc li { padding: 16px 0; border-top: 1px solid var(--rule); }
+  ol.toc a { color: var(--accent); font-size: 1.1rem; text-decoration: none; }
+  ol.toc a:hover { text-decoration: underline; }
+  ol.toc p { margin: 4px 0 0; color: var(--muted); font-size: 0.95rem; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>FINA 3103</h1>
+<p class="sub">Härledningar med numeriska kontroller; skripten ligger i <code>code/html_checks/</code>.</p>
+
+<ol class="toc">
+  <li><a href="tangency.html">Tangentportföljens vikter</a><p>Varför Sharpe-maximering ger $\mathbf w^* \propto \Sigma^{-1}\boldsymbol\mu$, och hur det blir tvåtillgångsformeln för $w_S^*$. Assignment 1, Part B (b).</p></li>
+  <li><a href="borrowing.html">Dyrare att låna</a><p>Knäckt CAL när lån kostar 6 % men utlåning ger 3 %, de tre fallen för $y^*$, intervallet för $A$ där man håller exakt $P^*$, och varför mixen ändras om den får väljas fritt. Assignment 1, Part B (c)–(d).</p></li>
+</ol>
+
+</main>
+</body>
+</html>

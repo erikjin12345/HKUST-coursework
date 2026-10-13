@@ -1,0 +1,808 @@
+\documentclass[11pt]{article}
+
+    \usepackage[breakable]{tcolorbox}
+    \usepackage{parskip} % Stop auto-indenting (to mimic markdown behaviour)
+    
+
+    % Basic figure setup, for now with no caption control since it's done
+    % automatically by Pandoc (which extracts ![](path) syntax from Markdown).
+    \usepackage{graphicx}
+    % Keep aspect ratio if custom image width or height is specified
+    \setkeys{Gin}{keepaspectratio}
+    % Maintain compatibility with old templates. Remove in nbconvert 6.0
+    \let\Oldincludegraphics\includegraphics
+    % Ensure that by default, figures have no caption (until we provide a
+    % proper Figure object with a Caption API and a way to capture that
+    % in the conversion process - todo).
+    \usepackage{caption}
+    \DeclareCaptionFormat{nocaption}{}
+    \captionsetup{format=nocaption,aboveskip=0pt,belowskip=0pt}
+
+    \usepackage{float}
+    \floatplacement{figure}{H} % forces figures to be placed at the correct location
+    \usepackage{xcolor} % Allow colors to be defined
+    \usepackage{enumerate} % Needed for markdown enumerations to work
+    \usepackage{geometry} % Used to adjust the document margins
+    \usepackage{amsmath} % Equations
+    \usepackage{amssymb} % Equations
+    \usepackage{textcomp} % defines textquotesingle
+    % Hack from http://tex.stackexchange.com/a/47451/13684:
+    \AtBeginDocument{%
+        \def\PYZsq{\textquotesingle}% Upright quotes in Pygmentized code
+    }
+    \usepackage{upquote} % Upright quotes for verbatim code
+    \usepackage{eurosym} % defines \euro
+
+    \usepackage{iftex}
+    \ifPDFTeX
+        \usepackage[T1]{fontenc}
+        \IfFileExists{alphabeta.sty}{
+              \usepackage{alphabeta}
+          }{
+              \usepackage[mathletters]{ucs}
+              \usepackage[utf8x]{inputenc}
+          }
+    \else
+        \usepackage{fontspec}
+        \usepackage{unicode-math}
+    \fi
+
+    \usepackage{fancyvrb} % verbatim replacement that allows latex
+    \usepackage{grffile} % extends the file name processing of package graphics
+                         % to support a larger range
+    \makeatletter % fix for old versions of grffile with XeLaTeX
+    \@ifpackagelater{grffile}{2019/11/01}
+    {
+      % Do nothing on new versions
+    }
+    {
+      \def\Gread@@xetex#1{%
+        \IfFileExists{"\Gin@base".bb}%
+        {\Gread@eps{\Gin@base.bb}}%
+        {\Gread@@xetex@aux#1}%
+      }
+    }
+    \makeatother
+    \usepackage[Export]{adjustbox} % Used to constrain images to a maximum size
+    \adjustboxset{max size={0.9\linewidth}{0.9\paperheight}}
+
+    % The hyperref package gives us a pdf with properly built
+    % internal navigation ('pdf bookmarks' for the table of contents,
+    % internal cross-reference links, web links for URLs, etc.)
+    \usepackage{hyperref}
+    % The default LaTeX title has an obnoxious amount of whitespace. By default,
+    % titling removes some of it. It also provides customization options.
+    \usepackage{titling}
+    \usepackage{longtable} % longtable support required by pandoc >1.10
+    \usepackage{booktabs}  % table support for pandoc > 1.12.2
+    \usepackage{array}     % table support for pandoc >= 2.11.3
+    \usepackage{calc}      % table minipage width calculation for pandoc >= 2.11.1
+    \usepackage[inline]{enumitem} % IRkernel/repr support (it uses the enumerate* environment)
+    \usepackage[normalem]{ulem} % ulem is needed to support strikethroughs (\sout)
+                                % normalem makes italics be italics, not underlines
+    \usepackage{soul}      % strikethrough (\st) support for pandoc >= 3.0.0
+    \usepackage{mathrsfs}
+    
+
+    
+    % Colors for the hyperref package
+    \definecolor{urlcolor}{rgb}{0,.145,.698}
+    \definecolor{linkcolor}{rgb}{.71,0.21,0.01}
+    \definecolor{citecolor}{rgb}{.12,.54,.11}
+
+    % ANSI colors
+    \definecolor{ansi-black}{HTML}{3E424D}
+    \definecolor{ansi-black-intense}{HTML}{282C36}
+    \definecolor{ansi-red}{HTML}{E75C58}
+    \definecolor{ansi-red-intense}{HTML}{B22B31}
+    \definecolor{ansi-green}{HTML}{00A250}
+    \definecolor{ansi-green-intense}{HTML}{007427}
+    \definecolor{ansi-yellow}{HTML}{DDB62B}
+    \definecolor{ansi-yellow-intense}{HTML}{B27D12}
+    \definecolor{ansi-blue}{HTML}{208FFB}
+    \definecolor{ansi-blue-intense}{HTML}{0065CA}
+    \definecolor{ansi-magenta}{HTML}{D160C4}
+    \definecolor{ansi-magenta-intense}{HTML}{A03196}
+    \definecolor{ansi-cyan}{HTML}{60C6C8}
+    \definecolor{ansi-cyan-intense}{HTML}{258F8F}
+    \definecolor{ansi-white}{HTML}{C5C1B4}
+    \definecolor{ansi-white-intense}{HTML}{A1A6B2}
+    \definecolor{ansi-default-inverse-fg}{HTML}{FFFFFF}
+    \definecolor{ansi-default-inverse-bg}{HTML}{000000}
+
+    % common color for the border for error outputs.
+    \definecolor{outerrorbackground}{HTML}{FFDFDF}
+
+    % commands and environments needed by pandoc snippets
+    % extracted from the output of `pandoc -s`
+    \providecommand{\tightlist}{%
+      \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+    % Add ',fontsize=\small' for more characters per line
+    \newenvironment{Shaded}{}{}
+    \newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{{#1}}}
+    \newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{{#1}}}}
+    \newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{{#1}}}
+    \newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{{#1}}}
+    \newcommand{\RegionMarkerTok}[1]{{#1}}
+    \newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\NormalTok}[1]{{#1}}
+
+    % Additional commands for more recent versions of Pandoc
+    \newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{{#1}}}
+    \newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{{#1}}}
+    \newcommand{\ImportTok}[1]{{#1}}
+    \newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{{#1}}}}
+    \newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{{#1}}}
+    \newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{{#1}}}
+    \newcommand{\BuiltInTok}[1]{{#1}}
+    \newcommand{\ExtensionTok}[1]{{#1}}
+    \newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{{#1}}}
+    \newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{{#1}}}
+    \newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \makeatletter
+    \newsavebox\pandoc@box
+    \newcommand*\pandocbounded[1]{%
+      \sbox\pandoc@box{#1}%
+      % scaling factors for width and height
+      \Gscale@div\@tempa\textheight{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+      \Gscale@div\@tempb\linewidth{\wd\pandoc@box}%
+      % select the smaller of both
+      \ifdim\@tempb\p@<\@tempa\p@
+        \let\@tempa\@tempb
+      \fi
+      % scaling accordingly (\@tempa < 1)
+      \ifdim\@tempa\p@<\p@
+        \scalebox{\@tempa}{\usebox\pandoc@box}%
+      % scaling not needed, use as it is
+      \else
+        \usebox{\pandoc@box}%
+      \fi
+    }
+    \makeatother
+
+    % Define a nice break command that doesn't care if a line doesn't already
+    % exist.
+    \def\br{\hspace*{\fill} \\* }
+    % Math Jax compatibility definitions
+    \def\gt{>}
+    \def\lt{<}
+    \let\Oldtex\TeX
+    \let\Oldlatex\LaTeX
+    \renewcommand{\TeX}{\textrm{\Oldtex}}
+    \renewcommand{\LaTeX}{\textrm{\Oldlatex}}
+    % Document parameters
+    % Document title
+    \title{partB}
+    
+    
+    
+    
+    
+    
+    
+% Pygments definitions
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\@namedef{PY@tok@w}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\@namedef{PY@tok@c}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cp}{\def\PY@tc##1{\textcolor[rgb]{0.61,0.40,0.00}{##1}}}
+\@namedef{PY@tok@k}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kp}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kt}{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\@namedef{PY@tok@o}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@ow}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\@namedef{PY@tok@nb}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@nf}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@nc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@nn}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@ne}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.80,0.25,0.22}{##1}}}
+\@namedef{PY@tok@nv}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@no}{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\@namedef{PY@tok@nl}{\def\PY@tc##1{\textcolor[rgb]{0.46,0.46,0.00}{##1}}}
+\@namedef{PY@tok@ni}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.44,0.44,0.44}{##1}}}
+\@namedef{PY@tok@na}{\def\PY@tc##1{\textcolor[rgb]{0.41,0.47,0.13}{##1}}}
+\@namedef{PY@tok@nt}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@nd}{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\@namedef{PY@tok@s}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sd}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@si}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.64,0.35,0.47}{##1}}}
+\@namedef{PY@tok@se}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.36,0.12}{##1}}}
+\@namedef{PY@tok@sr}{\def\PY@tc##1{\textcolor[rgb]{0.64,0.35,0.47}{##1}}}
+\@namedef{PY@tok@ss}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@sx}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@m}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@gh}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\@namedef{PY@tok@gu}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@gd}{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\@namedef{PY@tok@gi}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.52,0.00}{##1}}}
+\@namedef{PY@tok@gr}{\def\PY@tc##1{\textcolor[rgb]{0.89,0.00,0.00}{##1}}}
+\@namedef{PY@tok@ge}{\let\PY@it=\textit}
+\@namedef{PY@tok@gs}{\let\PY@bf=\textbf}
+\@namedef{PY@tok@ges}{\let\PY@bf=\textbf\let\PY@it=\textit}
+\@namedef{PY@tok@gp}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\@namedef{PY@tok@go}{\def\PY@tc##1{\textcolor[rgb]{0.44,0.44,0.44}{##1}}}
+\@namedef{PY@tok@gt}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.27,0.87}{##1}}}
+\@namedef{PY@tok@err}{\def\PY@bc##1{{\setlength{\fboxsep}{\string -\fboxrule}\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{\strut ##1}}}}
+\@namedef{PY@tok@kc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kd}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kn}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kr}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@bp}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@fm}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@vc}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vg}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vi}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vm}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@sa}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sb}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sc}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@dl}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@s2}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sh}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@s1}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@mb}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mf}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mh}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mi}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@il}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mo}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@ch}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cm}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cpf}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@c1}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cs}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZam{\char`\&}
+\def\PYZlt{\char`\<}
+\def\PYZgt{\char`\>}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZhy{\char`\-}
+\def\PYZsq{\char`\'}
+\def\PYZdq{\char`\"}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+
+
+    % For linebreaks inside Verbatim environment from package fancyvrb.
+    \makeatletter
+        \newbox\Wrappedcontinuationbox
+        \newbox\Wrappedvisiblespacebox
+        \newcommand*\Wrappedvisiblespace {\textcolor{red}{\textvisiblespace}}
+        \newcommand*\Wrappedcontinuationsymbol {\textcolor{red}{\llap{\tiny$\m@th\hookrightarrow$}}}
+        \newcommand*\Wrappedcontinuationindent {3ex }
+        \newcommand*\Wrappedafterbreak {\kern\Wrappedcontinuationindent\copy\Wrappedcontinuationbox}
+        % Take advantage of the already applied Pygments mark-up to insert
+        % potential linebreaks for TeX processing.
+        %        {, <, #, %, $, ' and ": go to next line.
+        %        _, }, ^, &, >, - and ~: stay at end of broken line.
+        % Use of \textquotesingle for straight quote.
+        \newcommand*\Wrappedbreaksatspecials {%
+            \def\PYGZus{\discretionary{\char`\_}{\Wrappedafterbreak}{\char`\_}}%
+            \def\PYGZob{\discretionary{}{\Wrappedafterbreak\char`\{}{\char`\{}}%
+            \def\PYGZcb{\discretionary{\char`\}}{\Wrappedafterbreak}{\char`\}}}%
+            \def\PYGZca{\discretionary{\char`\^}{\Wrappedafterbreak}{\char`\^}}%
+            \def\PYGZam{\discretionary{\char`\&}{\Wrappedafterbreak}{\char`\&}}%
+            \def\PYGZlt{\discretionary{}{\Wrappedafterbreak\char`\<}{\char`\<}}%
+            \def\PYGZgt{\discretionary{\char`\>}{\Wrappedafterbreak}{\char`\>}}%
+            \def\PYGZsh{\discretionary{}{\Wrappedafterbreak\char`\#}{\char`\#}}%
+            \def\PYGZpc{\discretionary{}{\Wrappedafterbreak\char`\%}{\char`\%}}%
+            \def\PYGZdl{\discretionary{}{\Wrappedafterbreak\char`\$}{\char`\$}}%
+            \def\PYGZhy{\discretionary{\char`\-}{\Wrappedafterbreak}{\char`\-}}%
+            \def\PYGZsq{\discretionary{}{\Wrappedafterbreak\textquotesingle}{\textquotesingle}}%
+            \def\PYGZdq{\discretionary{}{\Wrappedafterbreak\char`\"}{\char`\"}}%
+            \def\PYGZti{\discretionary{\char`\~}{\Wrappedafterbreak}{\char`\~}}%
+        }
+        % Some characters . , ; ? ! / are not pygmentized.
+        % This macro makes them "active" and they will insert potential linebreaks
+        \newcommand*\Wrappedbreaksatpunct {%
+            \lccode`\~`\.\lowercase{\def~}{\discretionary{\hbox{\char`\.}}{\Wrappedafterbreak}{\hbox{\char`\.}}}%
+            \lccode`\~`\,\lowercase{\def~}{\discretionary{\hbox{\char`\,}}{\Wrappedafterbreak}{\hbox{\char`\,}}}%
+            \lccode`\~`\;\lowercase{\def~}{\discretionary{\hbox{\char`\;}}{\Wrappedafterbreak}{\hbox{\char`\;}}}%
+            \lccode`\~`\:\lowercase{\def~}{\discretionary{\hbox{\char`\:}}{\Wrappedafterbreak}{\hbox{\char`\:}}}%
+            \lccode`\~`\?\lowercase{\def~}{\discretionary{\hbox{\char`\?}}{\Wrappedafterbreak}{\hbox{\char`\?}}}%
+            \lccode`\~`\!\lowercase{\def~}{\discretionary{\hbox{\char`\!}}{\Wrappedafterbreak}{\hbox{\char`\!}}}%
+            \lccode`\~`\/\lowercase{\def~}{\discretionary{\hbox{\char`\/}}{\Wrappedafterbreak}{\hbox{\char`\/}}}%
+            \catcode`\.\active
+            \catcode`\,\active
+            \catcode`\;\active
+            \catcode`\:\active
+            \catcode`\?\active
+            \catcode`\!\active
+            \catcode`\/\active
+            \lccode`\~`\~
+        }
+    \makeatother
+
+    \let\OriginalVerbatim=\Verbatim
+    \makeatletter
+    \renewcommand{\Verbatim}[1][1]{%
+        %\parskip\z@skip
+        \sbox\Wrappedcontinuationbox {\Wrappedcontinuationsymbol}%
+        \sbox\Wrappedvisiblespacebox {\FV@SetupFont\Wrappedvisiblespace}%
+        \def\FancyVerbFormatLine ##1{\hsize\linewidth
+            \vtop{\raggedright\hyphenpenalty\z@\exhyphenpenalty\z@
+                \doublehyphendemerits\z@\finalhyphendemerits\z@
+                \strut ##1\strut}%
+        }%
+        % If the linebreak is at a space, the latter will be displayed as visible
+        % space at end of first line, and a continuation symbol starts next line.
+        % Stretch/shrink are however usually zero for typewriter font.
+        \def\FV@Space {%
+            \nobreak\hskip\z@ plus\fontdimen3\font minus\fontdimen4\font
+            \discretionary{\copy\Wrappedvisiblespacebox}{\Wrappedafterbreak}
+            {\kern\fontdimen2\font}%
+        }%
+
+        % Allow breaks at special characters using \PYG... macros.
+        \Wrappedbreaksatspecials
+        % Breaks at punctuation characters . , ; ? ! and / need catcode=\active
+        \OriginalVerbatim[#1,codes*=\Wrappedbreaksatpunct]%
+    }
+    \makeatother
+
+    % Exact colors from NB
+    \definecolor{incolor}{HTML}{303F9F}
+    \definecolor{outcolor}{HTML}{D84315}
+    \definecolor{cellborder}{HTML}{CFCFCF}
+    \definecolor{cellbackground}{HTML}{F7F7F7}
+
+    % prompt
+    \makeatletter
+    \newcommand{\boxspacing}{\kern\kvtcb@left@rule\kern\kvtcb@boxsep}
+    \makeatother
+    \newcommand{\prompt}[4]{
+        {\ttfamily\llap{{\color{#2}[#3]:\hspace{3pt}#4}}\vspace{-\baselineskip}}
+    }
+    
+
+    
+    % Prevent overflowing lines due to hard-to-break entities
+    \sloppy
+    % Setup hyperref package
+    \hypersetup{
+      breaklinks=true,  % so long urls are correctly broken across lines
+      colorlinks=true,
+      urlcolor=urlcolor,
+      linkcolor=linkcolor,
+      citecolor=citecolor,
+      }
+    % Slightly bigger margins than the latex defaults
+    
+    \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+    
+    
+
+\begin{document}
+    
+    \maketitle
+    
+    
+
+    
+    \subsection{Assignment 1}\label{assignment-1}
+
+\subsubsection{Part B}\label{part-b}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{1}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c+c1}{\PYZsh{} Our certainty equivalence }
+\PY{n}{erik\PYZus{}CE} \PY{o}{=} \PY{p}{\PYZob{}}
+    \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{X}\PY{l+s+s2}{\PYZdq{}} \PY{p}{:} \PY{l+m+mf}{0.10}\PY{p}{,}
+    \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Y}\PY{l+s+s2}{\PYZdq{}} \PY{p}{:} \PY{l+m+mf}{0.12}\PY{p}{,}
+    \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Z}\PY{l+s+s2}{\PYZdq{}} \PY{p}{:} \PY{l+m+mf}{0.05}
+\PY{p}{\PYZcb{}}
+
+\PY{n}{elaine\PYZus{}CE} \PY{o}{=} \PY{p}{\PYZob{}}
+    \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{X}\PY{l+s+s2}{\PYZdq{}} \PY{p}{:} \PY{l+m+mf}{0.04}\PY{p}{,}
+    \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Y}\PY{l+s+s2}{\PYZdq{}} \PY{p}{:} \PY{l+m+mf}{0.03}\PY{p}{,}
+    \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Z}\PY{l+s+s2}{\PYZdq{}} \PY{p}{:} \PY{l+m+mf}{0.035}
+\PY{p}{\PYZcb{}}
+
+\PY{n}{chen\PYZus{}CE} \PY{o}{=} \PY{p}{\PYZob{}}
+    \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{X}\PY{l+s+s2}{\PYZdq{}} \PY{p}{:} \PY{l+m+mf}{0.07}\PY{p}{,}
+    \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Y}\PY{l+s+s2}{\PYZdq{}} \PY{p}{:} \PY{l+m+mf}{0.05}\PY{p}{,}
+    \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Z}\PY{l+s+s2}{\PYZdq{}} \PY{p}{:} \PY{l+m+mf}{0.02}
+\PY{p}{\PYZcb{}}
+
+\PY{c+c1}{\PYZsh{} stock fund}
+\PY{n}{E\PYZus{}rs} \PY{o}{=} \PY{l+m+mf}{0.1}
+\PY{n}{std\PYZus{}rs} \PY{o}{=} \PY{l+m+mf}{0.18}
+
+\PY{c+c1}{\PYZsh{} bond fund}
+\PY{n}{E\PYZus{}bf} \PY{o}{=} \PY{l+m+mf}{0.06}
+\PY{n}{std\PYZus{}bf} \PY{o}{=} \PY{l+m+mf}{0.1}
+
+\PY{c+c1}{\PYZsh{} correlation factor between stock and bonds}
+\PY{n}{rho\PYZus{}sb} \PY{o}{=} \PY{l+m+mf}{0.25}
+
+\PY{c+c1}{\PYZsh{} risk\PYZhy{}free rate}
+\PY{n}{rf} \PY{o}{=} \PY{l+m+mf}{0.03}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \subsection{Question 1}\label{question-1}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{2}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{k+kn}{import}\PY{+w}{ }\PY{n+nn}{math}
+\PY{k+kn}{import}\PY{+w}{ }\PY{n+nn}{pandas}\PY{+w}{ }\PY{k}{as}\PY{+w}{ }\PY{n+nn}{pd}
+\PY{c+c1}{\PYZsh{} Expected return and standard deviation of each bet}
+\PY{n}{bet\PYZus{}X} \PY{o}{=} \PY{p}{\PYZob{}} \PY{c+c1}{\PYZsh{}outcome and probability}
+    \PY{l+m+mf}{0.3}\PY{p}{:} \PY{l+m+mf}{0.5}\PY{p}{,}
+    \PY{o}{\PYZhy{}}\PY{l+m+mf}{0.1}\PY{p}{:} \PY{l+m+mf}{0.5}
+\PY{p}{\PYZcb{}}
+
+\PY{n}{bet\PYZus{}Y} \PY{o}{=} \PY{p}{\PYZob{}}
+    \PY{l+m+mf}{0.15}\PY{p}{:} \PY{l+m+mf}{0.8}\PY{p}{,}
+    \PY{o}{\PYZhy{}}\PY{l+m+mf}{0.25}\PY{p}{:} \PY{l+m+mf}{0.2}
+\PY{p}{\PYZcb{}}
+
+\PY{n}{bet\PYZus{}Z} \PY{o}{=} \PY{p}{\PYZob{}}
+    \PY{l+m+mf}{0.39}\PY{p}{:} \PY{l+m+mf}{0.2}\PY{p}{,}
+    \PY{o}{\PYZhy{}}\PY{l+m+mf}{0.01}\PY{p}{:} \PY{l+m+mf}{0.8}
+\PY{p}{\PYZcb{}}
+
+\PY{n}{e\PYZus{}val} \PY{o}{=} \PY{p}{\PYZob{}}\PY{p}{\PYZcb{}}
+\PY{n}{std\PYZus{}val} \PY{o}{=} \PY{p}{\PYZob{}}\PY{p}{\PYZcb{}}
+\PY{n}{bets} \PY{o}{=} \PY{p}{\PYZob{}}
+    \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{X}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{bet\PYZus{}X}\PY{p}{,} 
+    \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Y}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{bet\PYZus{}Y}\PY{p}{,} 
+    \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Z}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{bet\PYZus{}Z}
+    \PY{p}{\PYZcb{}}
+\PY{k}{for} \PY{n}{name}\PY{p}{,} \PY{n}{bet} \PY{o+ow}{in} \PY{n}{bets}\PY{o}{.}\PY{n}{items}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+    \PY{n}{mean} \PY{o}{=} \PY{n+nb}{sum}\PY{p}{(}\PY{n}{payoff} \PY{o}{*} \PY{n}{prob} \PY{k}{for} \PY{n}{payoff}\PY{p}{,} \PY{n}{prob} \PY{o+ow}{in} \PY{n}{bet}\PY{o}{.}\PY{n}{items}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+    \PY{n}{std} \PY{o}{=} \PY{n}{math}\PY{o}{.}\PY{n}{sqrt}\PY{p}{(}
+        \PY{n+nb}{sum}\PY{p}{(}\PY{p}{(}\PY{n}{payoff} \PY{o}{\PYZhy{}} \PY{n}{mean}\PY{p}{)} \PY{o}{*}\PY{o}{*} \PY{l+m+mi}{2} \PY{o}{*} \PY{n}{prob} \PY{k}{for} \PY{n}{payoff}\PY{p}{,} \PY{n}{prob} \PY{o+ow}{in} \PY{n}{bet}\PY{o}{.}\PY{n}{items}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+    \PY{p}{)}
+    \PY{n}{e\PYZus{}val}\PY{p}{[}\PY{n}{name}\PY{p}{]} \PY{o}{=} \PY{n}{mean}
+    \PY{n}{std\PYZus{}val}\PY{p}{[}\PY{n}{name}\PY{p}{]} \PY{o}{=} \PY{n}{std}
+
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Expected Values (}\PY{l+s+s2}{\PYZpc{}}\PY{l+s+s2}{):}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{p}{[}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{v}\PY{l+s+si}{:}\PY{l+s+s2}{.2\PYZpc{}}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{\PYZdq{}} \PY{k}{for} \PY{n}{v} \PY{o+ow}{in} \PY{n}{e\PYZus{}val}\PY{o}{.}\PY{n}{values}\PY{p}{(}\PY{p}{)}\PY{p}{]}\PY{p}{)}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Standard deviations (}\PY{l+s+s2}{\PYZpc{}}\PY{l+s+s2}{):}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{p}{[}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{v}\PY{l+s+si}{:}\PY{l+s+s2}{.2\PYZpc{}}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{\PYZdq{}} \PY{k}{for} \PY{n}{v} \PY{o+ow}{in} \PY{n}{std\PYZus{}val}\PY{o}{.}\PY{n}{values}\PY{p}{(}\PY{p}{)}\PY{p}{]}\PY{p}{)}
+
+\PY{k}{def}\PY{+w}{ }\PY{n+nf}{risk\PYZus{}aversion}\PY{p}{(}\PY{n}{e\PYZus{}val}\PY{p}{,} \PY{n}{std\PYZus{}val}\PY{p}{,} \PY{n}{ce}\PY{p}{)}\PY{p}{:}
+    \PY{n}{A} \PY{o}{=} \PY{l+m+mi}{2} \PY{o}{*} \PY{p}{(}\PY{n}{e\PYZus{}val} \PY{o}{\PYZhy{}} \PY{n}{ce}\PY{p}{)} \PY{o}{/} \PY{n}{std\PYZus{}val} \PY{o}{*}\PY{o}{*} \PY{l+m+mi}{2}
+    \PY{k}{return} \PY{n}{A}
+
+\PY{n}{members} \PY{o}{=} \PY{p}{\PYZob{}}
+    \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{erik}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{erik\PYZus{}CE}\PY{p}{,}
+    \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{elaine}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{elaine\PYZus{}CE}\PY{p}{,}
+    \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{chen}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{chen\PYZus{}CE}
+\PY{p}{\PYZcb{}}
+\PY{n}{risk\PYZus{}aversion\PYZus{}df} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{p}{\PYZob{}}
+    \PY{n}{m}\PY{p}{:} \PY{p}{\PYZob{}}\PY{n}{b}\PY{p}{:} \PY{n}{risk\PYZus{}aversion}\PY{p}{(}\PY{n}{e\PYZus{}val}\PY{p}{[}\PY{n}{b}\PY{p}{]}\PY{p}{,} \PY{n}{std\PYZus{}val}\PY{p}{[}\PY{n}{b}\PY{p}{]}\PY{p}{,} \PY{n}{ces}\PY{p}{[}\PY{n}{b}\PY{p}{]}\PY{p}{)} \PY{k}{for} \PY{n}{b} \PY{o+ow}{in} \PY{n}{bets}\PY{p}{\PYZcb{}}
+    \PY{k}{for} \PY{n}{m}\PY{p}{,} \PY{n}{ces} \PY{o+ow}{in} \PY{n}{members}\PY{o}{.}\PY{n}{items}\PY{p}{(}\PY{p}{)}
+\PY{p}{\PYZcb{}}\PY{p}{)}  \PY{c+c1}{\PYZsh{} rows = bets, columns = members}
+
+\PY{n+nb}{print}\PY{p}{(}\PY{n}{risk\PYZus{}aversion\PYZus{}df}\PY{o}{.}\PY{n}{round}\PY{p}{(}\PY{l+m+mi}{2}\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Expected Values (\%): ['10.00\%', '7.00\%', '7.00\%']
+Standard deviations (\%): ['20.00\%', '16.00\%', '16.00\%']
+   erik  elaine  chen
+X -0.00    3.00  1.50
+Y -3.91    3.12  1.56
+Z  1.56    2.73  3.91
+    \end{Verbatim}
+
+    \subsection{Question 2}\label{question-2}
+
+\subsubsection{The Risky Portfolio}\label{the-risky-portfolio}
+
+The weights of Stock Fund (\(S\)) and Bond Fund (\(B\)) in the
+Sharpe-maximising portfolio \(P^*\) are given by:
+
+\[w_S^* = \frac{R_S \sigma_B^2 - R_B \sigma_{SB}}{R_S \sigma_B^2 + R_B \sigma_S^2 - (R_S + R_B) \sigma_{SB}}\]
+
+where \(R_S = E[r_S] - r_f\) and \(R_B = E[r_B] - r_f\) are the excess
+returns and \(\sigma_{SB} = \rho_{SB}\sigma_S\sigma_B\).
+
+\[w_B^* = 1 - w_S^*\]
+
+The weights are independent of the investor's risk preference. This is
+because it is the mean-variance optimal mix of two risky assets when we
+consider their expected return and their covariance matrix. The capital
+allocation line has constant Sharpe ratio. Different points represent
+different combinations of the risk-asset and the risky portfolio. Where
+an investor sits on the line depends on their risk preference \#\#\#
+Optimal Capital Allocation to the Risky Portfolio (\(y^*\))
+
+The fraction of wealth allocated to the optimal risky portfolio, denoted
+as \(y^*\), is derived by maximizing the investor's mean-variance
+utility function \(U(y)\) with respect to \(y\):
+
+\[U(y) = E[r_C] - \frac{1}{2} A \sigma_C^2\]
+
+Substituting the expected return \(E[r_C] = r_f + y(E[r_{P^*}] - r_f)\)
+and variance \(\sigma_C^2 = y^2 \sigma_{P^*}^2\) of the complete
+portfolio into the utility function yields:
+
+\[U(y) = r_f + y\left(E[r_{P^*}] - r_f\right) - \frac{1}{2} A y^2 \sigma_{P^*}^2\]
+
+To locate the utility-maximizing allocation, we evaluate the
+\textbf{first-order condition (FOC)} by setting the first derivative of
+\(U(y)\) with respect to \(y\) to zero:
+
+\[\frac{dU}{dy} = \left(E[r_{P^*}] - r_f\right) - A y \sigma_{P^*}^2 = 0\]
+
+Solving for \(y\) gives the optimal allocation formula:
+
+\[y^* = \frac{E[r_{P^*}] - r_f}{A \sigma_{P^*}^2}\]
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{3}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{var\PYZus{}rs} \PY{o}{=} \PY{n}{std\PYZus{}rs} \PY{o}{*}\PY{o}{*} \PY{l+m+mi}{2}
+\PY{n}{var\PYZus{}bf} \PY{o}{=} \PY{n}{std\PYZus{}bf} \PY{o}{*}\PY{o}{*} \PY{l+m+mi}{2}
+\PY{n}{cov\PYZus{}sb} \PY{o}{=} \PY{n}{rho\PYZus{}sb} \PY{o}{*} \PY{n}{std\PYZus{}rs} \PY{o}{*} \PY{n}{std\PYZus{}bf}
+\PY{n}{ex\PYZus{}rs} \PY{o}{=} \PY{n}{E\PYZus{}rs} \PY{o}{\PYZhy{}} \PY{n}{rf}
+\PY{n}{ex\PYZus{}bf} \PY{o}{=} \PY{n}{E\PYZus{}bf} \PY{o}{\PYZhy{}} \PY{n}{rf}
+\PY{n}{w\PYZus{}rs} \PY{o}{=} \PY{p}{(}\PY{n}{ex\PYZus{}rs} \PY{o}{*} \PY{n}{var\PYZus{}bf} \PY{o}{\PYZhy{}} \PY{n}{ex\PYZus{}bf} \PY{o}{*} \PY{n}{cov\PYZus{}sb}\PY{p}{)} \PY{o}{/} \PY{p}{(}
+    \PY{n}{ex\PYZus{}rs} \PY{o}{*} \PY{n}{var\PYZus{}bf} \PY{o}{+} \PY{n}{ex\PYZus{}bf} \PY{o}{*} \PY{n}{var\PYZus{}rs} \PY{o}{\PYZhy{}} \PY{p}{(}\PY{n}{ex\PYZus{}rs} \PY{o}{+} \PY{n}{ex\PYZus{}bf}\PY{p}{)} \PY{o}{*} \PY{n}{cov\PYZus{}sb}
+\PY{p}{)}
+\PY{n}{w\PYZus{}bf} \PY{o}{=} \PY{l+m+mi}{1} \PY{o}{\PYZhy{}} \PY{n}{w\PYZus{}rs}
+
+\PY{n}{E\PYZus{}rp} \PY{o}{=} \PY{n}{w\PYZus{}rs} \PY{o}{*} \PY{n}{E\PYZus{}rs} \PY{o}{+} \PY{n}{w\PYZus{}bf} \PY{o}{*} \PY{n}{E\PYZus{}bf}
+\PY{n}{var\PYZus{}rp} \PY{o}{=} \PY{p}{(}\PY{n}{w\PYZus{}rs} \PY{o}{*}\PY{o}{*} \PY{l+m+mi}{2}\PY{p}{)} \PY{o}{*} \PY{n}{var\PYZus{}rs} \PY{o}{+} \PY{p}{(}\PY{n}{w\PYZus{}bf} \PY{o}{*}\PY{o}{*} \PY{l+m+mi}{2}\PY{p}{)} \PY{o}{*} \PY{n}{var\PYZus{}bf} \PYZbs{}
+    \PY{o}{+} \PY{l+m+mi}{2} \PY{o}{*} \PY{n}{w\PYZus{}rs} \PY{o}{*} \PY{n}{w\PYZus{}bf} \PY{o}{*} \PY{n}{cov\PYZus{}sb}
+\PY{n}{std\PYZus{}rp} \PY{o}{=} \PY{n}{math}\PY{o}{.}\PY{n}{sqrt}\PY{p}{(}\PY{n}{var\PYZus{}rp}\PY{p}{)}
+\PY{n}{sharpe\PYZus{}rp} \PY{o}{=} \PY{p}{(}\PY{n}{E\PYZus{}rp} \PY{o}{\PYZhy{}} \PY{n}{rf}\PY{p}{)} \PY{o}{/} \PY{n}{std\PYZus{}rp}
+
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Optimal Risky Portfolio (P*):}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{  w\PYZus{}S*: }\PY{l+s+si}{\PYZob{}}\PY{n}{w\PYZus{}rs}\PY{l+s+si}{:}\PY{l+s+s2}{.4f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ (}\PY{l+s+si}{\PYZob{}}\PY{n}{w\PYZus{}rs}\PY{l+s+si}{:}\PY{l+s+s2}{.2\PYZpc{}}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{  w\PYZus{}B*: }\PY{l+s+si}{\PYZob{}}\PY{n}{w\PYZus{}bf}\PY{l+s+si}{:}\PY{l+s+s2}{.4f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ (}\PY{l+s+si}{\PYZob{}}\PY{n}{w\PYZus{}bf}\PY{l+s+si}{:}\PY{l+s+s2}{.2\PYZpc{}}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{  E[r\PYZus{}P*]: }\PY{l+s+si}{\PYZob{}}\PY{n}{E\PYZus{}rp}\PY{l+s+si}{:}\PY{l+s+s2}{.4f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ (}\PY{l+s+si}{\PYZob{}}\PY{n}{E\PYZus{}rp}\PY{l+s+si}{:}\PY{l+s+s2}{.2\PYZpc{}}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{  sigma\PYZus{}P*: }\PY{l+s+si}{\PYZob{}}\PY{n}{std\PYZus{}rp}\PY{l+s+si}{:}\PY{l+s+s2}{.4f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ (}\PY{l+s+si}{\PYZob{}}\PY{n}{std\PYZus{}rp}\PY{l+s+si}{:}\PY{l+s+s2}{.2\PYZpc{}}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{  Sharpe Ratio: }\PY{l+s+si}{\PYZob{}}\PY{n}{sharpe\PYZus{}rp}\PY{l+s+si}{:}\PY{l+s+s2}{.4f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+
+
+\PY{n}{rows} \PY{o}{=} \PY{p}{\PYZob{}}\PY{p}{\PYZcb{}}
+\PY{k}{for} \PY{n}{name} \PY{o+ow}{in} \PY{n}{members}\PY{p}{:}
+    \PY{n}{A\PYZus{}x} \PY{o}{=} \PY{n}{risk\PYZus{}aversion\PYZus{}df}\PY{o}{.}\PY{n}{loc}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{X}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{name}\PY{p}{]}
+    \PY{k}{if} \PY{n}{math}\PY{o}{.}\PY{n}{isclose}\PY{p}{(}\PY{n}{A\PYZus{}x}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{,} \PY{n}{abs\PYZus{}tol}\PY{o}{=}\PY{l+m+mf}{1e\PYZhy{}9}\PY{p}{)}\PY{p}{:}  \PY{c+c1}{\PYZsh{} risk\PYZhy{}neutral: y* unbounded}
+        \PY{n}{rows}\PY{p}{[}\PY{n}{name}\PY{p}{]} \PY{o}{=} \PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{A\PYZus{}X}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{l+m+mf}{0.0}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{y*}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{math}\PY{o}{.}\PY{n}{inf}\PY{p}{,}
+                      \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w\PYZus{}S}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{math}\PY{o}{.}\PY{n}{inf}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w\PYZus{}B}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{math}\PY{o}{.}\PY{n}{inf}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w\PYZus{}rf}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{o}{\PYZhy{}}\PY{n}{math}\PY{o}{.}\PY{n}{inf}\PY{p}{,}
+                      \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w\PYZus{}S/w\PYZus{}B}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{w\PYZus{}rs} \PY{o}{/} \PY{n}{w\PYZus{}bf}\PY{p}{\PYZcb{}}
+        \PY{k}{continue}
+    \PY{n}{y\PYZus{}star} \PY{o}{=} \PY{p}{(}\PY{n}{E\PYZus{}rp} \PY{o}{\PYZhy{}} \PY{n}{rf}\PY{p}{)} \PY{o}{/} \PY{p}{(}\PY{n}{A\PYZus{}x} \PY{o}{*} \PY{n}{var\PYZus{}rp}\PY{p}{)}
+    \PY{n}{rows}\PY{p}{[}\PY{n}{name}\PY{p}{]} \PY{o}{=} \PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{A\PYZus{}X}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{A\PYZus{}x}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{y*}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{y\PYZus{}star}\PY{p}{,}
+                  \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w\PYZus{}S}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{y\PYZus{}star} \PY{o}{*} \PY{n}{w\PYZus{}rs}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w\PYZus{}B}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{y\PYZus{}star} \PY{o}{*} \PY{n}{w\PYZus{}bf}\PY{p}{,}
+                  \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w\PYZus{}rf}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{l+m+mi}{1} \PY{o}{\PYZhy{}} \PY{n}{y\PYZus{}star}\PY{p}{,}
+                  \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w\PYZus{}S/w\PYZus{}B}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{p}{(}\PY{n}{y\PYZus{}star} \PY{o}{*} \PY{n}{w\PYZus{}rs}\PY{p}{)} \PY{o}{/} \PY{p}{(}\PY{n}{y\PYZus{}star} \PY{o}{*} \PY{n}{w\PYZus{}bf}\PY{p}{)}\PY{p}{\PYZcb{}}
+
+\PY{n}{allocation\PYZus{}df} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{n}{rows}\PY{p}{)}\PY{o}{.}\PY{n}{T}   \PY{c+c1}{\PYZsh{} rows = members}
+\PY{n}{allocation\PYZus{}df}\PY{o}{.}\PY{n}{round}\PY{p}{(}\PY{l+m+mi}{4}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Optimal Risky Portfolio (P*):
+  w\_S*: 0.4624 (46.24\%)
+  w\_B*: 0.5376 (53.76\%)
+  E[r\_P*]: 0.0785 (7.85\%)
+  sigma\_P*: 0.1098 (10.98\%)
+  Sharpe Ratio: 0.4417
+
+    \end{Verbatim}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{3}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+        A\_X     y*     w\_S    w\_B   w\_rf  w\_S/w\_B
+erik    0.0    inf     inf    inf   -inf     0.86
+elaine  3.0  1.341  0.6200  0.721 -0.341     0.86
+chen    1.5  2.682  1.2401  1.442 -1.682     0.86
+\end{Verbatim}
+\end{tcolorbox}
+        
+    \subsection{Question 3}\label{question-3}
+
+\subsubsection{Different Borrowing and Lending
+Rates}\label{different-borrowing-and-lending-rates}
+
+With a borrowing rate \(r_{\text{borrow}} = 6\%\) above the lending rate
+\(r_f = 3\%\), the capital allocation line has a kink at \(y = 1\). The
+expected return of the complete portfolio \(\text{C}\) becomes
+
+\[E[r_C] = \begin{cases} r_f + y\left(E[r_{P^*}] - r_f\right), & y \le 1 \quad \text{(lending)} \\ r_{\text{borrow}} + y\left(E[r_{P^*}] - r_{\text{borrow}}\right), & y > 1 \quad \text{(borrowing)} \end{cases}\]
+
+The borrowing cost only applies to the borrowed amount \((y-1)\), and
+\(\sigma_C = y\,\sigma_{P^*}\) is unchanged. Beyond the kink the CAL is
+flatter, with slope
+\(\left(E[r_{P^*}] - r_{\text{borrow}}\right)/\sigma_{P^*}\).
+
+Applying the FOC on each segment gives three cases:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \(y_L = \dfrac{E[r_{P^*}] - r_f}{A\sigma_{P^*}^2} \le 1\): the
+  investor lends and is unaffected.
+\item
+  \(y_B = \dfrac{E[r_{P^*}] - r_{\text{borrow}}}{A\sigma_{P^*}^2} \ge 1\):
+  the investor borrows at \(r_{\text{borrow}}\), and \(y^* = y_B\).
+\item
+  \(y_B < 1 < y_L\): the investor wants to borrow at \(r_f\) but not at
+  \(r_{\text{borrow}}\), so \(y^* = 1\).
+\end{enumerate}
+
+Case 3 gives the range of \(A\) for which the investor holds exactly
+100\% in \(P^*\):
+
+\[\frac{E[r_{P^*}] - r_{\text{borrow}}}{\sigma_{P^*}^2} \le A \le \frac{E[r_{P^*}] - r_f}{\sigma_{P^*}^2}\]
+
+Utility is evaluated with the rate of the segment the investor ends up
+on: \(U = E[r_C] - \tfrac{1}{2}A y^2 \sigma_{P^*}^2\).
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{4}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{r\PYZus{}borrow} \PY{o}{=} \PY{l+m+mf}{0.06}  \PY{c+c1}{\PYZsh{} borrowing rate; lending still earns rf}
+
+\PY{k}{def}\PY{+w}{ }\PY{n+nf}{optimal\PYZus{}y}\PY{p}{(}\PY{n}{A}\PY{p}{,} \PY{n}{E\PYZus{}rp}\PY{p}{,} \PY{n}{var\PYZus{}rp}\PY{p}{,} \PY{n}{r\PYZus{}lend}\PY{p}{,} \PY{n}{r\PYZus{}borrow}\PY{p}{)}\PY{p}{:}
+\PY{+w}{    }\PY{l+s+sd}{\PYZdq{}\PYZdq{}\PYZdq{}Optimal y on the kinked CAL.}
+
+\PY{l+s+sd}{    Returns (y*, rate earned or paid on the risk\PYZhy{}free position).}
+\PY{l+s+sd}{    \PYZdq{}\PYZdq{}\PYZdq{}}
+    \PY{k}{if} \PY{n}{math}\PY{o}{.}\PY{n}{isclose}\PY{p}{(}\PY{n}{A}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{,} \PY{n}{abs\PYZus{}tol}\PY{o}{=}\PY{l+m+mf}{1e\PYZhy{}9}\PY{p}{)}\PY{p}{:}
+        \PY{c+c1}{\PYZsh{} risk\PYZhy{}neutral: borrows without limit while E[r\PYZus{}P*] \PYZgt{} r\PYZus{}borrow}
+        \PY{k}{return} \PY{n}{math}\PY{o}{.}\PY{n}{inf}\PY{p}{,} \PY{n}{r\PYZus{}borrow}
+    \PY{n}{y\PYZus{}lend} \PY{o}{=} \PY{p}{(}\PY{n}{E\PYZus{}rp} \PY{o}{\PYZhy{}} \PY{n}{r\PYZus{}lend}\PY{p}{)} \PY{o}{/} \PY{p}{(}\PY{n}{A} \PY{o}{*} \PY{n}{var\PYZus{}rp}\PY{p}{)}
+    \PY{k}{if} \PY{n}{y\PYZus{}lend} \PY{o}{\PYZlt{}}\PY{o}{=} \PY{l+m+mi}{1}\PY{p}{:}
+        \PY{k}{return} \PY{n}{y\PYZus{}lend}\PY{p}{,} \PY{n}{r\PYZus{}lend}  \PY{c+c1}{\PYZsh{} lends (or exactly 100\PYZpc{} in P*): unaffected}
+    \PY{n}{y\PYZus{}borrow} \PY{o}{=} \PY{p}{(}\PY{n}{E\PYZus{}rp} \PY{o}{\PYZhy{}} \PY{n}{r\PYZus{}borrow}\PY{p}{)} \PY{o}{/} \PY{p}{(}\PY{n}{A} \PY{o}{*} \PY{n}{var\PYZus{}rp}\PY{p}{)}
+    \PY{k}{if} \PY{n}{y\PYZus{}borrow} \PY{o}{\PYZgt{}}\PY{o}{=} \PY{l+m+mi}{1}\PY{p}{:}
+        \PY{k}{return} \PY{n}{y\PYZus{}borrow}\PY{p}{,} \PY{n}{r\PYZus{}borrow}  \PY{c+c1}{\PYZsh{} borrows at 6\PYZpc{}}
+    \PY{k}{return} \PY{l+m+mf}{1.0}\PY{p}{,} \PY{n}{r\PYZus{}lend}  \PY{c+c1}{\PYZsh{} stuck at the kink: neither borrows nor lends}
+
+\PY{k}{def}\PY{+w}{ }\PY{n+nf}{utility}\PY{p}{(}\PY{n}{A}\PY{p}{,} \PY{n}{y}\PY{p}{,} \PY{n}{r}\PY{p}{,} \PY{n}{E\PYZus{}rp}\PY{p}{,} \PY{n}{var\PYZus{}rp}\PY{p}{)}\PY{p}{:}
+    \PY{k}{return} \PY{n}{r} \PY{o}{+} \PY{n}{y} \PY{o}{*} \PY{p}{(}\PY{n}{E\PYZus{}rp} \PY{o}{\PYZhy{}} \PY{n}{r}\PY{p}{)} \PY{o}{\PYZhy{}} \PY{l+m+mf}{0.5} \PY{o}{*} \PY{n}{A} \PY{o}{*} \PY{n}{y} \PY{o}{*}\PY{o}{*} \PY{l+m+mi}{2} \PY{o}{*} \PY{n}{var\PYZus{}rp}
+
+\PY{n}{rows} \PY{o}{=} \PY{p}{\PYZob{}}\PY{p}{\PYZcb{}}
+\PY{k}{for} \PY{n}{name} \PY{o+ow}{in} \PY{n}{members}\PY{p}{:}
+    \PY{n}{A\PYZus{}x} \PY{o}{=} \PY{n}{risk\PYZus{}aversion\PYZus{}df}\PY{o}{.}\PY{n}{loc}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{X}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{name}\PY{p}{]}
+    \PY{k}{if} \PY{n}{math}\PY{o}{.}\PY{n}{isclose}\PY{p}{(}\PY{n}{A\PYZus{}x}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{,} \PY{n}{abs\PYZus{}tol}\PY{o}{=}\PY{l+m+mf}{1e\PYZhy{}9}\PY{p}{)}\PY{p}{:}
+        \PY{n}{rows}\PY{p}{[}\PY{n}{name}\PY{p}{]} \PY{o}{=} \PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{A\PYZus{}X}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{l+m+mf}{0.0}\PY{p}{,}
+                      \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{y* (old)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{math}\PY{o}{.}\PY{n}{inf}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{y* (new)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{math}\PY{o}{.}\PY{n}{inf}\PY{p}{,}
+                      \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w\PYZus{}S}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{math}\PY{o}{.}\PY{n}{inf}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w\PYZus{}B}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{math}\PY{o}{.}\PY{n}{inf}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w\PYZus{}rf}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{o}{\PYZhy{}}\PY{n}{math}\PY{o}{.}\PY{n}{inf}\PY{p}{,}
+                      \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{U (old)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{math}\PY{o}{.}\PY{n}{inf}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{U (new)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{math}\PY{o}{.}\PY{n}{inf}\PY{p}{\PYZcb{}}
+        \PY{k}{continue}
+    \PY{n}{y\PYZus{}old} \PY{o}{=} \PY{p}{(}\PY{n}{E\PYZus{}rp} \PY{o}{\PYZhy{}} \PY{n}{rf}\PY{p}{)} \PY{o}{/} \PY{p}{(}\PY{n}{A\PYZus{}x} \PY{o}{*} \PY{n}{var\PYZus{}rp}\PY{p}{)}
+    \PY{n}{y\PYZus{}new}\PY{p}{,} \PY{n}{r} \PY{o}{=} \PY{n}{optimal\PYZus{}y}\PY{p}{(}\PY{n}{A\PYZus{}x}\PY{p}{,} \PY{n}{E\PYZus{}rp}\PY{p}{,} \PY{n}{var\PYZus{}rp}\PY{p}{,} \PY{n}{rf}\PY{p}{,} \PY{n}{r\PYZus{}borrow}\PY{p}{)}
+    \PY{n}{rows}\PY{p}{[}\PY{n}{name}\PY{p}{]} \PY{o}{=} \PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{A\PYZus{}X}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{A\PYZus{}x}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{y* (old)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{y\PYZus{}old}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{y* (new)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{y\PYZus{}new}\PY{p}{,}
+                  \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w\PYZus{}S}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{y\PYZus{}new} \PY{o}{*} \PY{n}{w\PYZus{}rs}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w\PYZus{}B}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{y\PYZus{}new} \PY{o}{*} \PY{n}{w\PYZus{}bf}\PY{p}{,}
+                  \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w\PYZus{}rf}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{l+m+mi}{1} \PY{o}{\PYZhy{}} \PY{n}{y\PYZus{}new}\PY{p}{,}
+                  \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{U (old)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{utility}\PY{p}{(}\PY{n}{A\PYZus{}x}\PY{p}{,} \PY{n}{y\PYZus{}old}\PY{p}{,} \PY{n}{rf}\PY{p}{,} \PY{n}{E\PYZus{}rp}\PY{p}{,} \PY{n}{var\PYZus{}rp}\PY{p}{)}\PY{p}{,}
+                  \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{U (new)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{utility}\PY{p}{(}\PY{n}{A\PYZus{}x}\PY{p}{,} \PY{n}{y\PYZus{}new}\PY{p}{,} \PY{n}{r}\PY{p}{,} \PY{n}{E\PYZus{}rp}\PY{p}{,} \PY{n}{var\PYZus{}rp}\PY{p}{)}\PY{p}{\PYZcb{}}
+
+\PY{n}{borrowing\PYZus{}df} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{n}{rows}\PY{p}{)}\PY{o}{.}\PY{n}{T}  \PY{c+c1}{\PYZsh{} rows = members}
+\PY{n+nb}{print}\PY{p}{(}\PY{n}{borrowing\PYZus{}df}\PY{o}{.}\PY{n}{round}\PY{p}{(}\PY{l+m+mi}{4}\PY{p}{)}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Range of A for which y* = 1 (neither borrowing nor lending)}
+\PY{n}{A\PYZus{}low} \PY{o}{=} \PY{p}{(}\PY{n}{E\PYZus{}rp} \PY{o}{\PYZhy{}} \PY{n}{r\PYZus{}borrow}\PY{p}{)} \PY{o}{/} \PY{n}{var\PYZus{}rp}
+\PY{n}{A\PYZus{}high} \PY{o}{=} \PY{p}{(}\PY{n}{E\PYZus{}rp} \PY{o}{\PYZhy{}} \PY{n}{rf}\PY{p}{)} \PY{o}{/} \PY{n}{var\PYZus{}rp}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{Investor holds exactly 100\PYZpc{} in P* for }\PY{l+s+s2}{\PYZdq{}}
+      \PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{A\PYZus{}low}\PY{l+s+si}{:}\PY{l+s+s2}{.4f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{ \PYZlt{}= A \PYZlt{}= }\PY{l+s+si}{\PYZob{}}\PY{n}{A\PYZus{}high}\PY{l+s+si}{:}\PY{l+s+s2}{.4f}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+        A\_X  y* (old)  y* (new)     w\_S     w\_B    w\_rf  U (old)  U (new)
+erik    0.0       inf       inf     inf     inf    -inf      inf      inf
+elaine  3.0     1.341    1.0000  0.4624  0.5376  0.0000   0.0625   0.0604
+chen    1.5     2.682    1.0228  0.4729  0.5499 -0.0228   0.0950   0.0695
+
+Investor holds exactly 100\% in P* for 1.5343 <= A <= 4.0230
+    \end{Verbatim}
+
+    \subsection{Question 4}\label{question-4}
+
+\textbf{Is the advice consistent with (b)?} No.~In (b) every member
+holds stocks and bonds in the same ratio,
+\(w_S/w_B = 0.4624/0.5376 = 0.86\), and risk aversion only changes
+\(y^*\), the split between \(P^*\) and the risk-free asset. This is the
+separation property: under mean-variance utility with a single rate for
+borrowing and lending, a more risk-averse investor should hold more
+cash, not more bonds. The advisers' rule contradicts this.
+
+\textbf{Reason 1: Borrowing costs more than lending (supported by our
+numbers in (c)).} Separation needs investors to borrow and lend at the
+same rate. With \(r_{\text{borrow}} = 6\%\), leverage on \(P^*\) only
+earns \(7.85\% - 6\% = 1.85\%\) per unit, and the slope of the CAL
+beyond \(P^*\) drops from 0.44 to 0.17. An investor who wants more risk
+than \(P^*\) can instead get it without borrowing, by tilting the risky
+portfolio towards stocks. For our group:
+
+\begin{longtable}[]{@{}llllll@{}}
+\toprule\noalign{}
+Member & A & P* fixed: S / B / rf & U & Best mix: S / B / rf & U \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Elaine & 3 & 46\% / 54\% / 0\% & 0.0604 & 56\% / 44\% / 0\% & 0.0609 \\
+Chen & 1.5 & 47\% / 55\% / −2\% & 0.0695 & 96\% / 4\% / 0\% & 0.0757 \\
+\end{longtable}
+
+Both are better off leaving \(P^*\), and the optimal mix depends on
+\(A\): the less risk-averse Chen holds almost only stocks, while Elaine
+holds more bonds. Investors with \(A \geq 4.02\), who lend, keep
+\(P^*\). In this setting the advisers' rule is rational.
+
+\textbf{Reason 2: Preferences depend on more than mean and variance
+(supported by our numbers in (a)).} Bets Y and Z have the same mean
+(7\%) and the same standard deviation (16\%). Under mean-variance
+utility, each member should therefore give them the same CE. None of us
+did:
+
+\begin{longtable}[]{@{}lllll@{}}
+\toprule\noalign{}
+& CE(Y) & CE(Z) & \(A_Y\) & \(A_Z\) \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Erik & 12\% & 5\% & −3.91 & 1.56 \\
+Elaine & 3\% & 3.5\% & 3.12 & 2.73 \\
+Chen & 5\% & 2\% & 1.56 & 3.91 \\
+\end{longtable}
+
+The bets differ only in skewness. Y has a small chance of a large loss
+(negative skew), and Z has a small chance of a large gain (positive
+skew). Our answers show that we care about this third moment, and our
+implied \(A\) is not even constant across bets. \(P^*\) is optimal only
+for an investor who looks at mean and variance alone. An investor who
+dislikes left-tail risk, as Elaine does by valuing Z above Y, would
+rationally hold fewer of the assets with crash risk (typically stocks)
+and more bonds than in \(P^*\).
+
+\emph{Other reasons (not required):} hedging of future liabilities or a
+long horizon, for which long-term bonds are close to risk-free;
+correlation with labour income; and estimation error in \(E[r]\), which
+makes the extreme weights from mean-variance optimisation unreliable.
+
+
+    % Add a bibliography block to the postdoc
+    
+    
+    
+\end{document}

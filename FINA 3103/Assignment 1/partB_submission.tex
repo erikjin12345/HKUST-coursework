@@ -1,0 +1,309 @@
+\documentclass[11pt]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{hyperref}
+
+% All numbers are computed in partB.ipynb. Compile with pdfLaTeX (e.g. on Overleaf).
+
+\newcommand{\rb}{r_{\text{borrow}}}
+\newcommand{\Er}[1]{E[r_{#1}]}
+\captionsetup[table]{skip=6pt}
+
+\title{FINA 3103 -- Homework 1, Part B}
+\author{Erik Jin (21434993) \and Yining Wang (21279642) \and Ziyou Chen (21435052)}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+%==============================================================================
+\section*{(a) Risk aversion from the certainty equivalents}
+
+For a bet with outcomes $r_i$ and probabilities $p_i$:
+\[
+E[r] = \sum_i p_i r_i, \qquad
+\sigma^2 = \sum_i p_i\bigl(r_i - E[r]\bigr)^2.
+\]
+Under mean-variance utility the CE equals the utility of the bet:
+\[
+CE = E[r] - \tfrac12 A\sigma^2
+\quad\Longrightarrow\quad
+A = \frac{2\bigl(E[r] - CE\bigr)}{\sigma^2}.
+\]
+
+\begin{table}[H]
+\centering
+\caption{Moments of the bets}\label{tab:moments}
+\begin{tabular}{lccc}
+\toprule
+Bet & $E[r]$ & $\sigma$ & $\sigma^2$ \\
+\midrule
+X & 10\% & 20\% & 0.0400 \\
+Y & 7\%  & 16\% & 0.0256 \\
+Z & 7\%  & 16\% & 0.0256 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Implied risk aversion $A$}\label{tab:A}
+\begin{tabular}{lccc}
+\toprule
+Member & Bet X & Bet Y & Bet Z \\
+\midrule
+Erik   & 0.000 & $-3.906$ & 1.563 \\
+Elaine & 3.000 & 3.125    & 2.734 \\
+Chen   & 1.500 & 1.563    & 3.906 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{What should hold for Bets Y and Z.}
+Y and Z have the same expected return and the same variance (Table~\ref{tab:moments}). A mean-variance investor cares only about these two moments, so each member should state the \emph{same} CE for Y and Z, and the implied $A$ should be the same for every bet.
+
+\paragraph{Does it hold for our group?}
+No. Every member gives different CEs for Y and Z, so the implied $A$ differs across bets (Table~\ref{tab:A}).
+\begin{itemize}
+  \item \textbf{Erik} is risk-neutral on X, risk-loving on Y (his CE is above the expected return, so $A<0$) and risk-averse on Z.
+  \item \textbf{Elaine} has a fairly stable $A$ across the three bets, so mean-variance utility is a reasonable approximation for her.
+  \item \textbf{Chen}'s $A$ for Z is more than twice his $A$ for Y.
+\end{itemize}
+
+\paragraph{Which assumption this contradicts.}
+Y and Z differ only in their skewness: Y has a small chance of a large loss (negative skew), Z a small chance of a large gain (positive skew). Since our CEs differ between them, we care about more than the mean and the variance. This contradicts the assumption that returns are (approximately) normally distributed, or equivalently that investors care only about the first two moments. The variation of $A$ across bets also contradicts a single, constant risk-aversion coefficient per investor. Elaine values the positively skewed Z more (the usual preference for skewness), while Erik and Chen prefer the negatively skewed Y.
+
+%==============================================================================
+\section*{(b) Optimal risky portfolio and complete portfolios}
+
+\paragraph{The risky portfolio $P^*$.}
+Every investor chooses the risky portfolio with the steepest capital allocation line (CAL), i.e.\ the highest Sharpe ratio:
+\[
+\max_{w_S}\; S_P = \frac{\Er{P} - r_f}{\sigma_P},
+\qquad
+\Er{P} = w_S\Er{S} + w_B\Er{B},
+\qquad
+\sigma_P^2 = w_S^2\sigma_S^2 + w_B^2\sigma_B^2 + 2w_Sw_B\sigma_{SB}.
+\]
+The first-order condition gives $\mathbf w^* \propto \Sigma^{-1}(\boldsymbol\mu - r_f\mathbf 1)$. With excess returns $R_S = \Er{S} - r_f$, $R_B = \Er{B} - r_f$ and $\sigma_{SB} = \rho_{SB}\sigma_S\sigma_B$, this becomes for two assets
+\[
+w_S^* = \frac{R_S\,\sigma_B^2 - R_B\,\sigma_{SB}}{R_S\,\sigma_B^2 + R_B\,\sigma_S^2 - (R_S + R_B)\,\sigma_{SB}},
+\qquad w_B^* = 1 - w_S^*.
+\]
+
+\begin{table}[H]
+\centering
+\caption{Inputs to the tangency formula}
+\begin{tabular}{ccccccc}
+\toprule
+$R_S$ & $R_B$ & $\sigma_S^2$ & $\sigma_B^2$ & $\sigma_{SB}$ & Numerator & Denominator \\
+\midrule
+0.07 & 0.03 & 0.0324 & 0.0100 & 0.0045 & 0.000565 & 0.001222 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Optimal risky portfolio $P^*$}\label{tab:pstar}
+\begin{tabular}{cccccc}
+\toprule
+$w_S^*$ & $w_B^*$ & $w_S^*/w_B^*$ & $\Er{P^*}$ & $\sigma_{P^*}$ & Sharpe ratio \\
+\midrule
+0.4624 & 0.5376 & 0.8600 & 7.85\% & 10.98\% & 0.4417 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Capital allocation.}
+The complete portfolio $C$ puts a fraction $y$ in $P^*$ and $1-y$ in the risk-free asset:
+\[
+\Er{C} = r_f + y\bigl(\Er{P^*} - r_f\bigr), \qquad \sigma_C = y\,\sigma_{P^*}.
+\]
+Maximising $U(y) = \Er{C} - \tfrac12 A\sigma_C^2$:
+\begin{gather*}
+U(y) = r_f + y\bigl(\Er{P^*} - r_f\bigr) - \tfrac12 A y^2\sigma_{P^*}^2, \\
+\frac{dU}{dy} = \bigl(\Er{P^*} - r_f\bigr) - A y\,\sigma_{P^*}^2 = 0
+\quad\Longrightarrow\quad
+y^* = \frac{\Er{P^*} - r_f}{A\,\sigma_{P^*}^2}.
+\end{gather*}
+The complete-portfolio weights are $\bigl(y^*w_S^*,\; y^*w_B^*,\; 1-y^*\bigr)$. We use each member's $A$ from Bet X.
+
+\begin{table}[H]
+\centering
+\caption{Complete portfolios with one rate for borrowing and lending}\label{tab:complete}
+\begin{tabular}{lccccccccc}
+\toprule
+Member & $A_X$ & $y^*$ & $w_S$ & $w_B$ & $w_{r_f}$ & $w_S/w_B$ & $\Er{C}$ & $\sigma_C$ & $U$ \\
+\midrule
+Erik   & 0.00 & $\infty$ & $\infty$ & $\infty$ & $-\infty$ & 0.8600 & -- & -- & -- \\
+Elaine & 3.00 & 1.3410 & 0.6200 & 0.7210 & $-0.3410$ & 0.8600 & 9.50\%  & 14.72\% & 0.0625 \\
+Chen   & 1.50 & 2.6820 & 1.2401 & 1.4420 & $-1.6820$ & 0.8600 & 16.01\% & 29.45\% & 0.0950 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Erik's CE for Bet X equals its expected return, so $A_X = 0$: he is risk-neutral, $y^*$ is unbounded and he would borrow without limit at $r_f$ to buy $P^*$. Elaine and Chen both have $y^* > 1$ and borrow at the risk-free rate.
+
+\paragraph{Same ratio of S to B.}
+The column $w_S/w_B$ in Table~\ref{tab:complete} is identical for every member and equals $w_S^*/w_B^*$ in Table~\ref{tab:pstar}. Risk aversion only changes how much is invested in $P^*$, never the mix of S and B inside it. This is the \emph{separation property} (two-fund separation): the optimal risky portfolio is independent of preferences, and $A$ only determines the allocation between $P^*$ and the risk-free asset.
+
+%==============================================================================
+\section*{(c) Borrowing at 6\%, lending at 3\%}
+
+\paragraph{Lending versus borrowing.}
+The sign of the risk-free weight $1-y$ determines the side:
+\begin{itemize}
+  \item \textbf{Lending} ($y \le 1$, $w_{r_f} \ge 0$): part of wealth is invested in the risk-free asset and earns $r_f$.
+  \item \textbf{Borrowing} ($y > 1$, $w_{r_f} < 0$): the investor holds more than 100\% in $P^*$ and finances the excess $y-1$ with a loan at $\rb$.
+\end{itemize}
+The higher rate applies only to the borrowed amount, so lenders are unaffected. The CAL gets a kink at $P^*$:
+\[
+\Er{C} =
+\begin{cases}
+r_f + y\bigl(\Er{P^*} - r_f\bigr), & y \le 1, \\[2pt]
+\rb + y\bigl(\Er{P^*} - \rb\bigr), & y > 1,
+\end{cases}
+\qquad \sigma_C = y\,\sigma_{P^*},
+\]
+\[
+\text{slope of the CAL} =
+\begin{cases}
+\dfrac{\Er{P^*} - r_f}{\sigma_{P^*}}, & y \le 1, \\[8pt]
+\dfrac{\Er{P^*} - \rb}{\sigma_{P^*}}, & y > 1.
+\end{cases}
+\]
+The first-order condition on each segment gives
+\[
+y_L = \frac{\Er{P^*} - r_f}{A\sigma_{P^*}^2}, \qquad
+y_B = \frac{\Er{P^*} - \rb}{A\sigma_{P^*}^2},
+\qquad
+y^* =
+\begin{cases}
+y_L & \text{if } y_L \le 1 \text{ (lends, unaffected)}, \\
+1   & \text{if } y_B < 1 < y_L \text{ (at the kink)}, \\
+y_B & \text{if } y_B \ge 1 \text{ (borrows at } \rb\text{)}.
+\end{cases}
+\]
+Utility is evaluated on the segment the investor ends up on: $U = \Er{C} - \tfrac12 A y^{*2}\sigma_{P^*}^2$.
+
+\paragraph{Range of $A$ for holding exactly 100\% in $P^*$.}
+The investor neither borrows nor lends when $y_B \le 1 \le y_L$:
+\[
+y^* = 1 \quad\Longleftrightarrow\quad
+\frac{\Er{P^*} - \rb}{\sigma_{P^*}^2} \;\le\; A \;\le\; \frac{\Er{P^*} - r_f}{\sigma_{P^*}^2}.
+\]
+Utility is continuous at $y = 1$, because the rate is multiplied by $1 - y = 0$ there. Its slope, however, drops by $\rb - r_f$:
+\[
+U'(1^-) = \Er{P^*} - r_f - A\sigma_{P^*}^2, \qquad
+U'(1^+) = \Er{P^*} - \rb - A\sigma_{P^*}^2.
+\]
+If $A$ lies in the range, then $U'(1^-) \ge 0 \ge U'(1^+)$. Utility rises up to $y = 1$ and falls beyond it, so the optimum is at the kink. Conversely, if $A$ lies outside the range, one of the two slopes points away from $y = 1$, and moving $y$ in that direction raises utility. The condition is therefore both necessary and sufficient. At the endpoints, the interior solution coincides with the kink: $y_B = 1$ at the lower bound and $y_L = 1$ at the upper bound. The range applies to the \emph{optimal} $y$ with $P^*$ held fixed.
+
+\begin{table}[H]
+\centering
+\caption{The kinked CAL}\label{tab:kink}
+\begin{tabular}{cccc}
+\toprule
+Slope, lending & Slope, borrowing & Lower bound on $A$ & Upper bound on $A$ \\
+\midrule
+0.4417 & 0.1684 & 1.5343 & 4.0230 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Complete portfolios with $\rb = 6\%$}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccccccccc}
+\toprule
+Member & $A_X$ & $y_L$ & $y_B$ & $y^*$ & $w_S$ & $w_B$ & $w_{r_f}$ & $\Er{C}$ & $\sigma_C$ & $U$ \\
+\midrule
+Erik   & 0.00 & $\infty$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ & $-\infty$ & -- & -- & -- \\
+Elaine & 3.00 & 1.3410 & 0.5114 & 1.0000 & 0.4624 & 0.5376 & 0.0000    & 7.85\% & 10.98\% & 0.0604 \\
+Chen   & 1.50 & 2.6820 & 1.0228 & 1.0228 & 0.4729 & 0.5499 & $-0.0228$ & 7.89\% & 11.23\% & 0.0695 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Effect of the borrowing rate}
+\begin{tabular}{lcccccl}
+\toprule
+Member & $y^*$ before & $y^*$ after & $w_{r_f}$ before & $w_{r_f}$ after & $U$ before & $U$ after \\
+\midrule
+Erik   & $\infty$ & $\infty$ & $-\infty$ & $-\infty$ & -- & -- \\
+Elaine & 1.3410 & 1.0000 & $-0.3410$ & 0.0000    & 0.0625 & 0.0604 \\
+Chen   & 2.6820 & 1.0228 & $-1.6820$ & $-0.0228$ & 0.0950 & 0.0695 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Who is affected.}
+All three members borrowed in (b), so all three are affected.
+\begin{itemize}
+  \item \textbf{Elaine} would borrow at $r_f$ ($y_L > 1$) but not at $\rb$ ($y_B < 1$). Her $A$ lies inside the range in Table~\ref{tab:kink}, so she ends up exactly at the kink with 100\% in $P^*$, and her utility falls.
+  \item \textbf{Chen}'s $A$ lies just below the range in Table~\ref{tab:kink}. He still borrows, but only a small fraction of his wealth instead of more than his whole wealth, and his utility falls.
+  \item \textbf{Erik} is risk-neutral ($A_X = 0$), which is below the range. His utility is well defined for every $y$; at $y = 1$ it equals $\Er{P^*} = 7.85\%$. With no variance penalty, however, its slope beyond the kink is $\Er{P^*} - \rb = 1.85\% > 0$ for every $y > 1$. Each additional unit borrowed raises his utility, so it has no maximum and his optimal leverage remains unbounded. Measured on Bet Z instead ($A_Z = 1.563$), he would lie inside the range and hold exactly $P^*$.
+\end{itemize}
+
+%==============================================================================
+\section*{(d) Should more risk-averse investors hold more bonds?}
+
+\paragraph{Consistency with (b).}
+No. In (b) every member holds S and B in the same ratio (Table~\ref{tab:complete}), and risk aversion only changes $y^*$. Under mean-variance utility with one rate for borrowing and lending, a more risk-averse investor should hold more \emph{cash}, not more bonds. The advisers' rule contradicts the separation property.
+
+\paragraph{Reason 1: Borrowing is more expensive than lending (our numbers from (c)).}
+Separation requires that investors can borrow and lend at the same rate. With $\rb > r_f$ the CAL beyond $P^*$ is much flatter (Table~\ref{tab:kink}). An investor who wants more risk than $P^*$ can instead get it without borrowing, by tilting the risky portfolio towards stocks. Maximising $\Er{P} - \tfrac12 A\sigma_P^2$ over the stock-bond mix with $y = 1$ gives
+\[
+w_S = \frac{\bigl(\Er{S} - \Er{B}\bigr)/A + \sigma_B^2 - \sigma_{SB}}{\sigma_S^2 + \sigma_B^2 - 2\sigma_{SB}}, \qquad w_B = 1 - w_S,
+\]
+which is optimal for $0.7243 \le A \le 4.0230$, i.e.\ between the tangency portfolio relative to $\rb$ and $P^*$.
+
+\begin{table}[H]
+\centering
+\caption{Holding $P^*$ (from (c)) versus choosing the stock-bond mix freely}
+\begin{tabular}{lcccccccc}
+\toprule
+& \multicolumn{4}{c}{$P^*$ fixed, part (c)} & \multicolumn{4}{c}{Mix chosen freely, $y = 1$} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+Member & $w_S$ & $w_B$ & $w_{r_f}$ & $U$ & $w_S$ & $w_B$ & $w_{r_f}$ & $U$ \\
+\midrule
+Elaine ($A = 3$)   & 0.4624 & 0.5376 & 0.0000    & 0.0604 & 0.5639 & 0.4361 & 0.0000 & 0.0609 \\
+Chen ($A = 1.5$)   & 0.4729 & 0.5499 & $-0.0228$ & 0.0695 & 0.9631 & 0.0369 & 0.0000 & 0.0757 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Both are better off leaving $P^*$, and the optimal mix now depends on $A$: Chen, the less risk-averse, holds almost only stocks, while Elaine holds a larger share of bonds. Investors with $A$ above the upper bound in Table~\ref{tab:kink} lend and keep $P^*$. With a borrowing spread the advisers' rule is therefore rational.
+
+\paragraph{Reason 2: Preferences depend on more than mean and variance (our numbers from (a)).}
+Bets Y and Z have identical mean and variance, yet every member gives them different CEs:
+
+\begin{table}[H]
+\centering
+\caption{CEs and implied $A$ for the two bets with equal mean and variance}
+\begin{tabular}{lcccc}
+\toprule
+Member & CE(Y) & CE(Z) & $A_Y$ & $A_Z$ \\
+\midrule
+Erik   & 12\% & 5\%   & $-3.906$ & 1.563 \\
+Elaine & 3\%  & 3.5\% & 3.125    & 2.734 \\
+Chen   & 5\%  & 2\%   & 1.563    & 3.906 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent We care about skewness and tail risk, and $P^*$ is optimal only for an investor who looks at the first two moments. An investor who dislikes left-tail risk, as Elaine does by valuing Z above Y, would rationally hold less of the asset with larger crash risk (typically stocks) and more bonds than in $P^*$.
+
+\paragraph{Other reasons.}
+An investor with future liabilities or a long horizon may hold long-term bonds as a hedge, since they are close to risk-free for that horizon; labour income that is correlated with the stock market makes stocks riskier for that investor; and estimation error in expected returns makes the mean-variance weights unreliable in practice.
+
+\end{document}

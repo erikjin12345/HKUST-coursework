@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dyrare att låna</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7; --alt: #2f6f8f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b; --alt: #7cb8d6;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.65 Georgia, "Times New Roman", serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); margin-right: 16px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 { font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px; border-top: 1px solid var(--rule); }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  .key { background: var(--key); border-left: 3px solid var(--accent); padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0; }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .scroll { overflow-x: auto; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.93rem; font-family: -apple-system, "Segoe UI", sans-serif; background: var(--card); }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; }
+  tr.hl td { background: var(--key); }
+  code { font-size: 0.9em; }
+  svg text { font: 13px -apple-system, "Segoe UI", sans-serif; fill: var(--fg); }
+  svg .muted { fill: var(--muted); }
+  svg .acc { fill: var(--accent); }
+  svg .alt { fill: var(--alt); }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a><a href="tangency.html">Tangentportföljens vikter</a></nav>
+
+<h1>Dyrare att låna</h1>
+<p class="sub">Hur kapitalallokeringslinjen och formeln för $y^*$ ändras när utlåning ger $r_f = 3\,\%$ men lån kostar $r_{\text{borrow}} = 6\,\%$. Assignment 1, Part B (c), med en utvikning som är användbar i (d). Siffrorna kontrolleras i <code>code/html_checks/borrowing_check.py</code>.</p>
+
+<h2><span>1</span>Vad "lån kostar 6 %" betyder</h2>
+<p>Investeraren har förmögenheten 1 och lägger andelen $y$ i den riskfyllda portföljen $P^*$. Resten, $1-y$, ligger i den riskfria tillgången:</p>
+<ul>
+  <li>$y \le 1$: $1-y \ge 0$ är <em>utlånat</em> och ger $r_f = 3\,\%$.</li>
+  <li>$y &gt; 1$: $1-y &lt; 0$ är <em>lånat</em>, och på det beloppet betalas $r_{\text{borrow}} = 6\,\%$.</li>
+</ul>
+<p>Räntekostnaden gäller alltså bara lånebeloppet $y-1$, inte hela portföljen. Exempel med 100 kr och $y = 1.5$: man lånar 50 kr och har 150 kr i $P^*$.</p>
+<div class="scroll"><table>
+<tr><th></th><th>Lån till 3 %</th><th>Lån till 6 %</th></tr>
+<tr><td>Förväntad avkastning på 150 kr i $P^*$ (7.85 %)</td><td>+11.77</td><td>+11.77</td></tr>
+<tr><td>Ränta på 50 kr</td><td>−1.50</td><td>−3.00</td></tr>
+<tr class="hl"><td>Netto, $E[r_C]$</td><td>10.27 %</td><td>8.77 %</td></tr>
+</table></div>
+
+<h2><span>2</span>Den knäckta CAL:en</h2>
+<p>Den förväntade avkastningen på hela portföljen $C$ är $E[r_C] = y\,E[r_{P^*}] + (1-y)\,r$, där $r$ beror på tecknet av $1-y$. Omskrivet:</p>
+<div class="key">
+$$E[r_C] = \begin{cases} r_f + y\,\big(E[r_{P^*}] - r_f\big), & y \le 1 \\[4pt] r_{\text{borrow}} + y\,\big(E[r_{P^*}] - r_{\text{borrow}}\big), & y &gt; 1 \end{cases} \qquad \sigma_C = y\,\sigma_{P^*}.$$
+</div>
+<p>Risken ändras inte, eftersom lånet är riskfritt. Båda grenarna ger $E[r_{P^*}]$ vid $y = 1$, så linjen är kontinuerlig men får en knäck i $P^*$. Lutningen ($E[r_C]$ per enhet $\sigma_C$) är</p>
+$$\underbrace{\frac{E[r_{P^*}] - r_f}{\sigma_{P^*}} = 0.4417}_{\text{före knäcken}} \qquad\text{och}\qquad \underbrace{\frac{E[r_{P^*}] - r_{\text{borrow}}}{\sigma_{P^*}} = 0.1684}_{\text{efter knäcken}}.$$
+<p>Varje extra krona man lånar ger nu bara $7.85 - 6 = 1.85$ procentenheter i stället för $4.85$. Belåning blir mycket mindre lockande.</p>
+
+<svg viewBox="0 0 700 370" width="100%" style="max-width:700px; display:block; margin: 16px auto;" aria-label="Effektiv front med knäckt kapitalallokeringslinje: brant upp till P*, flackare efter; samt linjen från 6 procent som tangerar fronten i P_B">
+  <line x1="60" y1="320" x2="680" y2="320" stroke="var(--muted)" stroke-width="1"/>
+  <line x1="60" y1="20" x2="60" y2="320" stroke="var(--muted)" stroke-width="1"/>
+  <text x="60" y="338" text-anchor="middle" class="muted">0</text>
+  <text x="232.2" y="338" text-anchor="middle" class="muted">10 %</text>
+  <text x="404.4" y="338" text-anchor="middle" class="muted">20 %</text>
+  <text x="576.7" y="338" text-anchor="middle" class="muted">30 %</text>
+  <text x="52" y="324" text-anchor="end" class="muted">2 %</text>
+  <text x="52" y="224" text-anchor="end" class="muted">6 %</text>
+  <text x="52" y="124" text-anchor="end" class="muted">10 %</text>
+  <text x="52" y="24" text-anchor="end" class="muted">14 %</text>
+  <text x="370" y="362" text-anchor="middle" class="muted">σ</text>
+  <text x="18" y="170" text-anchor="middle" class="muted" transform="rotate(-90 18 170)">E[r]</text>
+  <!-- old CAL beyond P* (borrowing at 3 %) -->
+  <line x1="249.1" y1="173.8" x2="404.4" y2="74.2" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="2 4"/>
+  <text x="412" y="72" class="muted">om lån kostat 3 %</text>
+  <!-- line from rb tangent at P_B -->
+  <line x1="60" y1="220" x2="660.4" y2="20" stroke="var(--alt)" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="440" y="122" class="alt">från 6 %, tangerar i P_B</text>
+  <!-- frontier -->
+  <path d="M260.4,240.0 L251.8,235.0 L244.2,230.0 L237.6,225.0 L232.2,220.0 L228.2,215.0 L225.5,210.0 L224.3,205.0 L224.6,200.0 L226.4,195.0 L229.7,190.0 L234.3,185.0 L240.2,180.0 L247.2,175.0 L255.2,170.0 L264.2,165.0 L273.9,160.0 L284.3,155.0 L295.3,150.0 L306.8,145.0 L318.8,140.0 L331.1,135.0 L343.8,130.0 L356.8,125.0 L370.0,120.0 L383.5,115.0 L397.1,110.0 L410.9,105.0 L424.9,100.0 L439.0,95.0 L453.3,90.0 L467.6,85.0 L482.1,80.0 L496.6,75.0 L511.2,70.0 L525.9,65.0 L540.7,60.0 L555.5,55.0 L570.4,50.0 L585.3,45.0 L600.3,40.0 L615.3,35.0 L630.3,30.0 L645.4,25.0 L660.6,20.0" fill="none" stroke="var(--fg)" stroke-width="1.5" opacity="0.6"/>
+  <!-- kinked CAL with P* fixed -->
+  <polyline points="60,295 249.1,173.8 680,68.4" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+  <text x="676" y="88" text-anchor="end" class="acc">knäckt CAL (P* fast)</text>
+  <!-- points -->
+  <circle cx="60" cy="295" r="5" fill="var(--fg)"/><text x="70" y="312">r_f = 3 %</text>
+  <circle cx="60" cy="220" r="5" fill="var(--alt)"/><text x="70" y="240" class="alt">6 %</text>
+  <circle cx="232.2" cy="220" r="4" fill="var(--fg)"/><text x="240" y="236">B</text>
+  <circle cx="370" cy="120" r="4" fill="var(--fg)"/><text x="358" y="114" text-anchor="end">S</text>
+  <circle cx="249.1" cy="173.8" r="6" fill="var(--accent)"/><text x="238" y="166" text-anchor="end" class="acc">P*</text>
+  <circle cx="605.7" cy="38.2" r="6" fill="var(--alt)"/><text x="596" y="34" text-anchor="end" class="alt">P_B</text>
+</svg>
+<p class="note">Röd: knäckt CAL när $P^*$ hålls fast, vilket är modellen i (c). Prickad: den gamla linjen om lån kostat 3 %. Blå streckad: linjen från 6 % som tangerar fronten; den används i avsnitt 5.</p>
+
+<h2><span>3</span>Ny formel för $y^*$: tre fall</h2>
+<p>Nyttan är $U = E[r_C] - \tfrac12 A\,y^2\sigma_{P^*}^2$. På varje gren är den en parabel i $y$, och första ordningens villkor ger samma formel som förut men med grenens ränta:</p>
+$$y_L = \frac{E[r_{P^*}] - r_f}{A\,\sigma_{P^*}^2}, \qquad y_B = \frac{E[r_{P^*}] - r_{\text{borrow}}}{A\,\sigma_{P^*}^2}.$$
+<p>Men $y_L$ gäller bara om den hamnar på utlåningsgrenen ($\le 1$), och $y_B$ bara om den hamnar på lånegrenen ($\ge 1$). Eftersom $r_{\text{borrow}} &gt; r_f$ är alltid $y_B &lt; y_L$, och det ger tre fall:</p>
+<div class="key">
+$$y^* = \begin{cases} y_L & \text{om } y_L \le 1 \quad \text{(lånar ut, påverkas inte)} \\ 1 & \text{om } y_B &lt; 1 &lt; y_L \quad \text{(i knäcken)} \\ y_B & \text{om } y_B \ge 1 \quad \text{(lånar till 6 \%)} \end{cases}$$
+</div>
+<p>Mittenfallet är det nya. Investeraren vill låna till 3 % men inte till 6 %. Utlåning vore för lite risk, och lån är för dyrt. Då är det bästa att stanna precis i $P^*$.</p>
+<p><strong>Intervallet för $y^* = 1$.</strong> Sätt $y_L \ge 1$ och $y_B \le 1$ och lös ut $A$:</p>
+<div class="key">
+$$\frac{E[r_{P^*}] - r_{\text{borrow}}}{\sigma_{P^*}^2} \le A \le \frac{E[r_{P^*}] - r_f}{\sigma_{P^*}^2} \quad\Longrightarrow\quad 1.5343 \le A \le 4.0230.$$
+</div>
+<p>Den som har $A &gt; 4.023$ lånade aldrig ens till 3 % och påverkas inte. Den som har $A &lt; 1.534$ lånar fortfarande, men mindre.</p>
+
+<h2><span>4</span>Gruppens siffror ($P^*$ fast)</h2>
+<p>Med $E[r_{P^*}] = 7.85\,\%$, $\sigma_{P^*} = 10.98\,\%$ och $A$ från bet X:</p>
+<div class="scroll"><table>
+<tr><th></th><th>$A$</th><th>$y_L$</th><th>$y_B$</th><th>Fall</th><th>$y^*$</th><th>$(w_S, w_B, w_{rf})$</th><th>$U$ före</th><th>$U$ efter</th></tr>
+<tr><td>Erik</td><td>0</td><td>∞</td><td>∞</td><td>lånar</td><td>∞</td><td>obegränsat</td><td>∞</td><td>∞</td></tr>
+<tr class="hl"><td>Elaine</td><td>3.0</td><td>1.341</td><td>0.511</td><td>knäcken</td><td>1.0000</td><td>(0.4624, 0.5376, 0)</td><td>0.0625</td><td>0.0604</td></tr>
+<tr class="hl"><td>Chen</td><td>1.5</td><td>2.682</td><td>1.023</td><td>lånar</td><td>1.0228</td><td>(0.4729, 0.5499, −0.0228)</td><td>0.0950</td><td>0.0695</td></tr>
+</table></div>
+<p>Alla tre påverkas, eftersom alla lånade i (b). Elaine slutar låna helt. Chen går från att låna 168 % av förmögenheten till 2.3 %. Erik är riskneutral, och eftersom $E[r_{P^*}] = 7.85\,\% &gt; 6\,\%$ vill han fortfarande låna obegränsat.</p>
+<p>Lägg märke till att förhållandet $w_S/w_B = 0.86$ är detsamma som förut. I den här modellen ändras bara hur mycket man har i $P^*$, inte vad $P^*$ innehåller.</p>
+
+<h2><span>5</span>Utvikning: om man också får byta mix</h2>
+<p>Modellen ovan låser $P^*$. Men en investerare som ska låna till 6 % borde fråga vilken riskfylld portfölj som är bäst <em>mätt mot 6 %</em>. Det är tangentportföljen från $r_{\text{borrow}}$, samma formel som på <a href="tangency.html">förra sidan</a> men med $R_i = E[r_i] - 6\,\%$:</p>
+$$R_S = 0.04,\quad R_B = 0 \quad\Longrightarrow\quad w_S = \frac{0.04\cdot 0.01 - 0}{0.04\cdot 0.01 + 0 - 0.04\cdot 0.0045} = 1.818,\quad w_B = -0.818.$$
+<p>Obligationsfonden ger lika mycket som lånet kostar, så den bidrar bara med risk. $P_B$ blankar den. Linjen från 6 % genom $P_B$ har lutningen $0.2295$, brantare än den knäckta CAL:ens $0.1684$. Den effektiva gränsen består då av tre delar: linjen från 3 % upp till $P^*$, <strong>själva fronten mellan $P^*$ och $P_B$</strong>, och linjen från 6 % bortom $P_B$.</p>
+<p>På mittendelen investerar man 100 % i riskfyllda tillgångar men väljer den mix som maximerar $E[r] - \tfrac12 A\sigma^2$. Det gäller för $0.7243 \le A \le 4.0230$, och där ligger både Elaine och Chen:</p>
+<div class="scroll"><table>
+<tr><th></th><th>$w_S$</th><th>$w_B$</th><th>$w_{rf}$</th><th>$E[r_C]$</th><th>$\sigma_C$</th><th>$U$ med $P^*$ fast</th><th>$U$ med fri mix</th></tr>
+<tr><td>Elaine</td><td>0.5639</td><td>0.4361</td><td>0</td><td>8.26 %</td><td>12.01 %</td><td>0.0604</td><td>0.0609</td></tr>
+<tr><td>Chen</td><td>0.9631</td><td>0.0369</td><td>0</td><td>9.85 %</td><td>17.43 %</td><td>0.0695</td><td>0.0757</td></tr>
+</table></div>
+<p>Ingen av dem lånar längre. De tar i stället mer risk genom att <strong>flytta från obligationer till aktier</strong>, och båda får högre nytta än med $P^*$ fast. Ju lägre $A$, desto mer aktier: Chen nästan bara aktier, Elaine lite över $P^*$.</p>
+<div class="key">
+<p><strong>Kopplingen till (d):</strong> när lån är dyrare än utlåning är det rationellt för mindre riskaverta investerare att ha <em>mer aktier</em> i den riskfyllda delen än $P^*$, och för de mest riskaverta (som lånar ut) att ha precis $P^*$. Mixen beror då på $A$, och separationssatsen gäller bara när man kan låna och låna ut till samma ränta. Det stämmer med rådgivarnas tumregel: Elaine, som är mer riskavert, har mer obligationer i den riskfyllda delen (0.44) än Chen (0.04).</p>
+</div>
+<p class="note">Fråga (c) frågar efter "100 % i $P^*$", så den räknar med modellen i avsnitt 3–4. Avsnitt 5 är ett argument ni kan använda i (d), med era egna siffror som uppgiften kräver. Optimum i avsnitt 5 är kontrollerat med både sluten formel och numerisk optimering över $(w_S, w_B)$ med olika ränta för positivt och negativt $w_{rf}$.</p>
+
+</main>
+</body>
+</html>

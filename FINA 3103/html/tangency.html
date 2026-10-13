@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tangentportföljens vikter</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.65 Georgia, "Times New Roman", serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); margin-right: 16px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 { font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px; border-top: 1px solid var(--rule); }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  .key { background: var(--key); border-left: 3px solid var(--accent); padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0; }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .scroll { overflow-x: auto; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.93rem; font-family: -apple-system, "Segoe UI", sans-serif; background: var(--card); }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; }
+  tr.hl td { background: var(--key); }
+  code { font-size: 0.9em; }
+  svg text { font: 13px -apple-system, "Segoe UI", sans-serif; fill: var(--fg); }
+  svg .muted { fill: var(--muted); }
+  svg .acc { fill: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a></nav>
+
+<h1>Tangentportföljens vikter</h1>
+<p class="sub">Varför vikterna i den Sharpe-maximerande portföljen $P^*$ av en aktiefond och en obligationsfond ges av den tvåtillgångsformel som används i Assignment 1, Part B (b). Siffrorna kontrolleras i <code>code/html_checks/tangency_check.py</code>.</p>
+
+<h2><span>1</span>Vad vi maximerar och varför</h2>
+<p>Investeraren kombinerar en riskfylld portfölj $P$ med den riskfria räntan. Alla sådana kombinationer ligger på en rät linje, kapitalallokeringslinjen (CAL):</p>
+$$E[r_C] = r_f + \frac{E[r_P] - r_f}{\sigma_P}\,\sigma_C.$$
+<p>Lutningen är Sharpe-kvoten för $P$. En brantare linje ger mer avkastning för varje nivå av risk, så <em>oavsett</em> riskaversion vill alla ha den $P$ som ger den brantaste linjen. Den $P$ är tangentportföljen: linjen från $r_f$ som just tangerar den effektiva fronten.</p>
+
+<svg viewBox="0 0 700 370" width="100%" style="max-width:700px; display:block; margin: 16px auto;" aria-label="Effektiv front för aktie- och obligationsfonden med två kapitalallokeringslinjer; den brantaste tangerar fronten i P*">
+  <line x1="60" y1="320" x2="680" y2="320" stroke="var(--muted)" stroke-width="1"/>
+  <line x1="60" y1="20" x2="60" y2="320" stroke="var(--muted)" stroke-width="1"/>
+  <g class="muted">
+    <text x="60" y="338" text-anchor="middle" class="muted">0</text>
+    <text x="200.9" y="338" text-anchor="middle" class="muted">5 %</text>
+    <text x="341.8" y="338" text-anchor="middle" class="muted">10 %</text>
+    <text x="482.7" y="338" text-anchor="middle" class="muted">15 %</text>
+    <text x="623.6" y="338" text-anchor="middle" class="muted">20 %</text>
+    <text x="52" y="324" text-anchor="end" class="muted">2 %</text>
+    <text x="52" y="204" text-anchor="end" class="muted">6 %</text>
+    <text x="52" y="84" text-anchor="end" class="muted">10 %</text>
+  </g>
+  <text x="370" y="362" text-anchor="middle" class="muted">σ</text>
+  <text x="18" y="170" text-anchor="middle" class="muted" transform="rotate(-90 18 170)">E[r]</text>
+  <!-- CAL through the bond fund (worse) -->
+  <line x1="60" y1="290" x2="680" y2="92" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="676" y="110" text-anchor="end" class="muted">CAL genom B, lutning 0.30</text>
+  <!-- tangent CAL -->
+  <line x1="60" y1="290" x2="634.2" y2="20" stroke="var(--accent)" stroke-width="2"/>
+  <text x="560" y="42" text-anchor="end" class="acc">CAL genom P*, lutning 0.44</text>
+  <!-- frontier -->
+  <path d="M387.9,224.0 L380.7,221.0 L373.8,218.0 L367.4,215.0 L361.3,212.0 L355.7,209.0 L350.6,206.0 L346.0,203.0 L341.8,200.0 L338.2,197.0 L335.2,194.0 L332.7,191.0 L330.8,188.0 L329.5,185.0 L328.9,182.0 L328.8,179.0 L329.4,176.0 L330.5,173.0 L332.3,170.0 L334.7,167.0 L337.6,164.0 L341.2,161.0 L345.2,158.0 L349.8,155.0 L354.8,152.0 L360.3,149.0 L366.3,146.0 L372.7,143.0 L379.5,140.0 L386.6,137.0 L394.1,134.0 L401.9,131.0 L410.0,128.0 L418.4,125.0 L427.0,122.0 L435.9,119.0 L445.0,116.0 L454.4,113.0 L463.9,110.0 L473.6,107.0 L483.4,104.0 L493.5,101.0 L503.6,98.0 L514.0,95.0 L524.4,92.0 L535.0,89.0 L545.6,86.0 L556.4,83.0 L567.3,80.0 L578.2,77.0 L589.3,74.0 L600.4,71.0 L611.6,68.0 L622.9,65.0 L634.3,62.0 L645.7,59.0 L657.1,56.0" fill="none" stroke="var(--fg)" stroke-width="2"/>
+  <!-- points -->
+  <circle cx="60" cy="290" r="5" fill="var(--fg)"/><text x="70" y="306">r_f</text>
+  <circle cx="341.8" cy="200" r="5" fill="var(--fg)"/><text x="352" y="218">B</text>
+  <circle cx="567.3" cy="80" r="5" fill="var(--fg)"/><text x="578" y="96">S</text>
+  <circle cx="369.4" cy="144.5" r="6" fill="var(--accent)"/><text x="342" y="138" text-anchor="end" class="acc">P*</text>
+</svg>
+<p class="note">Den svarta kurvan är alla blandningar av S och B. Varje linje från $r_f$ till en punkt på kurvan är en möjlig CAL. Linjen genom B (streckad) är flackare än linjen som tangerar kurvan i $P^*$.</p>
+
+<p>Problemet är alltså att välja $w_S$ (med $w_B = 1 - w_S$) så att Sharpe-kvoten blir så stor som möjlig:</p>
+$$\max_{w_S}\; \frac{E[r_P] - r_f}{\sigma_P}, \qquad \sigma_P^2 = w_S^2\sigma_S^2 + w_B^2\sigma_B^2 + 2w_Sw_B\sigma_{SB}.$$
+
+<h2><span>2</span>Skriv om med överavkastningar</h2>
+<p>Eftersom $w_S + w_B = 1$ kan $r_f$ dras in i varje tillgång:</p>
+$$E[r_P] - r_f = w_S\big(E[r_S]-r_f\big) + w_B\big(E[r_B]-r_f\big) = w_S R_S + w_B R_B,$$
+<p>där $R_S = E[r_S]-r_f$ och $R_B = E[r_B]-r_f$ är överavkastningarna. Med vektorer $\mathbf w = (w_S, w_B)^\top$, $\boldsymbol\mu = (R_S, R_B)^\top$ och kovariansmatrisen</p>
+$$\Sigma = \begin{pmatrix} \sigma_S^2 & \sigma_{SB} \\ \sigma_{SB} & \sigma_B^2 \end{pmatrix}, \qquad \sigma_{SB} = \rho\,\sigma_S\sigma_B,$$
+<p>blir Sharpe-kvoten</p>
+$$\text{SR}(\mathbf w) = \frac{\boldsymbol\mu^\top \mathbf w}{\sqrt{\mathbf w^\top \Sigma\, \mathbf w}}.$$
+<p><strong>Viktig egenskap:</strong> om alla vikter multipliceras med samma tal $k > 0$ växer täljaren med $k$ och nämnaren med $\sqrt{k^2} = k$. Sharpe-kvoten ändras inte. Det betyder att vi kan strunta i villkoret $w_S + w_B = 1$ medan vi letar efter optimum och normera i efterhand. Det är det som gör härledningen enkel.</p>
+
+<h2><span>3</span>Första ordningens villkor</h2>
+<p>Derivera $\text{SR}$ med avseende på $\mathbf w$ (kvotregeln) och sätt lika med noll:</p>
+$$\frac{\partial\, \text{SR}}{\partial \mathbf w} = \frac{\boldsymbol\mu\,\sigma_P - (\boldsymbol\mu^\top\mathbf w)\,\dfrac{\Sigma\mathbf w}{\sigma_P}}{\sigma_P^2} = \mathbf 0 \quad\Longrightarrow\quad \Sigma\,\mathbf w = \frac{\sigma_P^2}{\boldsymbol\mu^\top\mathbf w}\;\boldsymbol\mu.$$
+<p>Faktorn framför $\boldsymbol\mu$ är bara ett tal. Villkoret säger alltså att $\Sigma\mathbf w$ ska vara proportionell mot $\boldsymbol\mu$, och därmed</p>
+<div class="key">
+$$\mathbf w^* \;\propto\; \Sigma^{-1}\boldsymbol\mu .$$
+</div>
+<p><strong>Tolkning.</strong> Komponent $i$ av $\Sigma\mathbf w$ är $\operatorname{Cov}(r_i, r_P)$, hur mycket tillgång $i$ samvarierar med hela portföljen, dvs. dess marginella bidrag till portföljens risk. I optimum är överavkastning per enhet riskbidrag lika för båda fonderna:</p>
+$$\frac{R_S}{\operatorname{Cov}(r_S, r_P)} = \frac{R_B}{\operatorname{Cov}(r_B, r_P)}.$$
+<p>Om aktiefonden gav mer överavkastning per enhet riskbidrag skulle det löna sig att flytta lite från B till S, och då var vi inte i optimum. (Det är samma idé som ligger bakom CAPM:s $\beta$.)</p>
+
+<h2><span>4</span>Invertera $2\times 2$-matrisen</h2>
+<p>För en $2\times2$-matris byter man plats på diagonalen, byter tecken utanför och delar med determinanten $D = \sigma_S^2\sigma_B^2 - \sigma_{SB}^2$:</p>
+$$\Sigma^{-1}\boldsymbol\mu = \frac1D \begin{pmatrix} \sigma_B^2 & -\sigma_{SB} \\ -\sigma_{SB} & \sigma_S^2 \end{pmatrix} \begin{pmatrix} R_S \\ R_B \end{pmatrix} = \frac1D \begin{pmatrix} R_S\sigma_B^2 - R_B\sigma_{SB} \\ R_B\sigma_S^2 - R_S\sigma_{SB} \end{pmatrix}.$$
+<p>Kalla komponenterna $z_S$ och $z_B$. De är rätt <em>riktning</em> men summerar inte till 1. Normera:</p>
+$$w_S^* = \frac{z_S}{z_S + z_B}.$$
+<p>Determinanten $D$ förekommer i både täljare och nämnare och tar ut sig själv. Kvar blir</p>
+<div class="key">
+$$w_S^* = \frac{R_S\,\sigma_B^2 - R_B\,\sigma_{SB}}{R_S\,\sigma_B^2 + R_B\,\sigma_S^2 - (R_S + R_B)\,\sigma_{SB}}, \qquad w_B^* = 1 - w_S^*,$$
+<p>med $R_S = E[r_S] - r_f$ och $R_B = E[r_B] - r_f$.</p>
+</div>
+<p>Nämnaren är $z_S + z_B$ (gånger $D$): $R_S\sigma_B^2 - R_B\sigma_{SB} + R_B\sigma_S^2 - R_S\sigma_{SB}$, och de två kovarianstermerna slås ihop till $-(R_S+R_B)\sigma_{SB}$.</p>
+
+<h2><span>5</span>Hur man läser formeln</h2>
+<ul>
+  <li><strong>Täljaren</strong> $R_S\sigma_B^2 - R_B\sigma_{SB}$: aktiefondens överavkastning, viktad med hur riskfylld <em>den andra</em> tillgången är, minus en korrektion för samvariation. Ju riskfylldare B är, desto mer S vill man ha.</li>
+  <li><strong>Okorrelerade fonder</strong> ($\sigma_{SB} = 0$): $w_S^* \propto R_S/\sigma_S^2$ och $w_B^* \propto R_B/\sigma_B^2$. Varje fond får vikt efter överavkastning per varians.</li>
+  <li><strong>Positiv korrelation</strong> minskar diversifieringsvinsten och drar vikterna mot den fond som har bäst Sharpe-kvot på egen hand.</li>
+  <li><strong>$A$ finns inte med.</strong> Formeln beror bara på $E[r]$, $\sigma$, $\rho$ och $r_f$. Därför har alla investerare samma $P^*$, och bara $y^*$ skiljer dem åt. Det är separationssatsen som (b) ber er visa.</li>
+  <li><strong>Inga begränsningar.</strong> Formeln förutsätter att blankning är tillåten. Ger den $w_S^* &lt; 0$ eller $&gt; 1$ betyder det att en fond blankas.</li>
+</ul>
+
+<h2><span>6</span>Med uppgiftens siffror</h2>
+<p>$E[r_S] = 10\,\%$, $\sigma_S = 18\,\%$, $E[r_B] = 6\,\%$, $\sigma_B = 10\,\%$, $\rho = 0.25$, $r_f = 3\,\%$. Det ger $R_S = 0.07$, $R_B = 0.03$, $\sigma_S^2 = 0.0324$, $\sigma_B^2 = 0.01$ och $\sigma_{SB} = 0.25\cdot0.18\cdot0.10 = 0.0045$.</p>
+$$w_S^* = \frac{0.07\cdot0.01 - 0.03\cdot0.0045}{0.07\cdot0.01 + 0.03\cdot0.0324 - 0.10\cdot0.0045} = \frac{0.000565}{0.001222} = 0.4624.$$
+<p>Tre oberoende sätt ger samma svar:</p>
+<div class="scroll"><table>
+<tr><th>Metod</th><th>$w_S^*$</th><th>$w_B^*$</th></tr>
+<tr><td>Tvåtillgångsformeln</td><td>0.4624</td><td>0.5376</td></tr>
+<tr><td>$\Sigma^{-1}\boldsymbol\mu = (1.8601,\ 2.1630)$, normerad</td><td>0.4624</td><td>0.5376</td></tr>
+<tr><td>Numerisk maximering av Sharpe-kvoten</td><td>0.4624</td><td>0.5376</td></tr>
+</table></div>
+<p>Första ordningens villkor kan kontrolleras direkt: $\Sigma\mathbf w^* = (0.017400,\ 0.007457)$, och delat med $\boldsymbol\mu$ blir båda komponenterna $0.2486 = \sigma_P^2/(\boldsymbol\mu^\top\mathbf w^*)$. Överavkastning per riskbidrag är alltså lika för S och B.</p>
+<p>Sharpe-kvoten för några andra blandningar visar att $P^*$ verkligen är maximum:</p>
+<div class="scroll"><table>
+<tr><th>$w_S$</th><th>Sharpe</th></tr>
+<tr><td>0 (bara B)</td><td>0.3000</td></tr>
+<tr><td>0.25</td><td>0.4139</td></tr>
+<tr class="hl"><td>0.4624 ($P^*$)</td><td>0.4417</td></tr>
+<tr><td>0.75</td><td>0.4187</td></tr>
+<tr><td>1 (bara S)</td><td>0.3889</td></tr>
+</table></div>
+<p>$P^*$ har $E[r_{P^*}] = 7.85\,\%$, $\sigma_{P^*} = 10.98\,\%$ och Sharpe-kvoten $0.4417$, samma som i notebooken.</p>
+
+<p class="note"><strong>Obs för notebooken:</strong> Markdown-cellen i fråga 2 skriver formeln med $E[R_S]$ och $E[R_B]$. Det ska vara <em>överavkastningar</em>, $E[R_S]-r_f$ och $E[R_B]-r_f$. Koden använder redan rätt storheter (<code>ex_rs</code>, <code>ex_bf</code>), så det är bara texten som behöver rättas.</p>
+
+</main>
+</body>
+</html>
