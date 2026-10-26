@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LDA och QDA: funktionerna och parametrarna</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.65 Georgia, "Times New Roman", serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); margin-right: 16px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 {
+    font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px;
+    border-top: 1px solid var(--rule);
+  }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  .key {
+    background: var(--key); border-left: 3px solid var(--accent);
+    padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0;
+  }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  ol.steps { padding-left: 0; list-style: none; counter-reset: s; }
+  ol.steps > li {
+    counter-increment: s; position: relative; padding: 4px 0 4px 44px; margin: 12px 0;
+  }
+  ol.steps > li::before {
+    content: counter(s); position: absolute; left: 0; top: 6px;
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1px solid var(--accent); color: var(--accent);
+    font: 600 0.85rem/26px -apple-system, "Segoe UI", sans-serif; text-align: center;
+  }
+  table.t { border-collapse: collapse; width: 100%; font-size: 0.93rem; margin: 16px 0; }
+  table.t th, table.t td { padding: 6px 8px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+  table.t th { font-family: -apple-system, "Segoe UI", sans-serif; font-size: 0.85rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a><a href="lda-discriminant.html">Övning 4.2</a><a href="classifiers.html">Klassificeringsmodellerna</a></nav>
+
+<h1>LDA och QDA: funktionerna och parametrarna</h1>
+<p class="sub">Vad diskriminantfunktionerna är, vad varje symbol betyder, hur parametrarna skattas och hur de syns i scikit-learn. ISLP avsnitt 4.4.1–4.4.3 (s. 147–158).</p>
+
+<h2><span>1</span>Grundidén: modellera $X$ inom varje klass</h2>
+<p>Logistisk regression modellerar $\Pr(Y = k \mid X = x)$ direkt. LDA och QDA går en omväg. De modellerar hur $X$ är fördelat <em>inom</em> varje klass och vänder sedan på det med Bayes sats (4.15):</p>
+$$p_k(x) = \Pr(Y = k \mid X = x) = \frac{\pi_k\, f_k(x)}{\sum_{l=1}^{K} \pi_l\, f_l(x)}.$$
+<table class="t">
+<tr><th>Symbol</th><th>Namn</th><th>Betydelse</th></tr>
+<tr><td>$K$</td><td>antal klasser</td><td>Responsen $Y$ tar värdena $1, \dots, K$.</td></tr>
+<tr><td>$p$</td><td>antal prediktorer</td><td>$x = (x_1, \dots, x_p)^\top$ är en kolumnvektor.</td></tr>
+<tr><td>$\pi_k$</td><td>a priori-sannolikhet</td><td>$\Pr(Y = k)$: hur vanlig klass $k$ är innan man har tittat på $x$.</td></tr>
+<tr><td>$f_k(x)$</td><td>klassvis täthet</td><td>Tätheten för $X$ bland observationer i klass $k$. Stort värde betyder att $x$ är typiskt för klass $k$.</td></tr>
+<tr><td>$p_k(x)$</td><td>a posteriori-sannolikhet</td><td>$\Pr(Y = k \mid X = x)$: sannolikheten för klass $k$ när man vet $x$.</td></tr>
+</table>
+<p>Bayes-klassificeraren väljer den klass som har störst $p_k(x)$. Nämnaren är samma för alla klasser, så det räcker att jämföra $\pi_k f_k(x)$. LDA och QDA väljer båda att $f_k$ är en <strong>normalfördelning</strong>. Den enda skillnaden mellan dem är vad de antar om kovariansen.</p>
+
+<h2><span>2</span>Den multivariata normalfördelningen</h2>
+<p>Med $p$ prediktorer är $X \mid Y = k \sim N_p(\mu_k, \Sigma_k)$, med tätheten (4.23):</p>
+$$f_k(x) = \frac{1}{(2\pi)^{p/2}\, |\Sigma_k|^{1/2}} \exp\!\Big( -\tfrac12 (x - \mu_k)^\top \Sigma_k^{-1} (x - \mu_k) \Big).$$
+<table class="t">
+<tr><th>Symbol</th><th>Dimension</th><th>Betydelse</th></tr>
+<tr><td>$\mu_k$</td><td>$p \times 1$</td><td>Medelvärdesvektorn för klass $k$, alltså var klassens "moln" har sitt centrum.</td></tr>
+<tr><td>$\Sigma_k$</td><td>$p \times p$</td><td>Kovariansmatrisen för klass $k$. Diagonalen innehåller varianserna $\operatorname{Var}(X_j)$ och resten kovarianserna $\operatorname{Cov}(X_i, X_j)$. Den bestämmer molnets form: hur utsträckt det är och åt vilket håll det lutar.</td></tr>
+<tr><td>$\Sigma_k^{-1}$</td><td>$p \times p$</td><td>Inversen, även kallad precisionsmatrisen. Den viktar avstånd: riktningar med stor spridning räknas som "kortare".</td></tr>
+<tr><td>$|\Sigma_k|$</td><td>skalär</td><td>Determinanten. Den mäter molnets volym. Ett stort moln har låg täthet i varje punkt, och därför står $|\Sigma_k|^{1/2}$ i nämnaren.</td></tr>
+<tr><td>$(x-\mu_k)^\top \Sigma_k^{-1} (x-\mu_k)$</td><td>skalär</td><td>Kvadrerat <strong>Mahalanobis-avstånd</strong> från $x$ till klassens centrum, mätt i klassens egen skala.</td></tr>
+</table>
+<p>Med $p = 1$ blir $\Sigma_k = \sigma_k^2$ och Mahalanobis-avståndet $(x-\mu_k)^2/\sigma_k^2$. Då får man den vanliga normaltätheten (4.16).</p>
+
+<h2><span>3</span>LDA: gemensam kovarians $\Sigma$</h2>
+<div class="key">
+<p><strong>Antagande:</strong> $X \mid Y = k \sim N_p(\mu_k, \Sigma)$. Varje klass har sitt eget centrum $\mu_k$, men alla klasser har <em>samma</em> kovariansmatris $\Sigma$. Molnen har alltså samma form och är bara förskjutna.</p>
+</div>
+<p>Ta $\log(\pi_k f_k(x))$ och stryk allt som inte beror på $k$. Det är samma räkning som i <a href="lda-discriminant.html">övning 4.2</a>, fast med matriser. Kvar blir (4.24):</p>
+$$\delta_k(x) = \underbrace{x^\top \Sigma^{-1} \mu_k}_{\text{linjär i } x} \;\underbrace{-\; \tfrac12\, \mu_k^\top \Sigma^{-1} \mu_k}_{\text{konstant}} \;\underbrace{+\; \log \pi_k}_{\text{prior}}.$$
+<p>Klassificera till det $k$ som har störst $\delta_k(x)$.</p>
+
+<h3>Term för term</h3>
+<table class="t">
+<tr><th>Term</th><th>Vad den gör</th></tr>
+<tr><td>$x^\top \Sigma^{-1} \mu_k$</td><td>Mäter hur väl $x$ "pekar mot" $\mu_k$, viktat med $\Sigma^{-1}$. Ju närmare $x$ ligger $\mu_k$ i Mahalanobis-mening, desto större blir termen relativt de andra klassernas.</td></tr>
+<tr><td>$-\tfrac12\, \mu_k^\top \Sigma^{-1} \mu_k$</td><td>Korrigerar för att centrum som ligger långt från origo annars skulle få ett för stort försprång av den första termen. Beror inte på $x$.</td></tr>
+<tr><td>$\log \pi_k$</td><td>Ger vanliga klasser ett försprång. Med lika priorer är termen samma för alla klasser och påverkar inget.</td></tr>
+</table>
+
+<h3>Som en linjär funktion</h3>
+<p>Skriv $w_k = \Sigma^{-1}\mu_k$ ($p \times 1$) och $b_k = -\tfrac12 \mu_k^\top \Sigma^{-1} \mu_k + \log \pi_k$ (skalär). Då är</p>
+$$\delta_k(x) = w_k^\top x + b_k.$$
+<p>Det är ett plan i $x$, och det är därför metoden heter <em>linjär</em>. Gränsen mellan klass $k$ och $l$ är där $\delta_k = \delta_l$, alltså $(w_k - w_l)^\top x + (b_k - b_l) = 0$. Det är en rät linje när $p = 2$ och ett hyperplan i allmänhet.</p>
+<p><strong>Varför blir den linjär?</strong> Om man utvecklar $-\tfrac12 (x-\mu_k)^\top \Sigma^{-1} (x-\mu_k)$ får man termen $-\tfrac12 x^\top \Sigma^{-1} x$. Den är kvadratisk i $x$, men med gemensam $\Sigma$ är den lika för alla $k$ och kan strykas. Samma sak gäller $\log|\Sigma|$.</p>
+<p><strong>Med $p = 1$</strong> blir det (4.18): $\delta_k(x) = x\,\dfrac{\mu_k}{\sigma^2} - \dfrac{\mu_k^2}{2\sigma^2} + \log \pi_k$.</p>
+
+<h2><span>4</span>QDA: egen kovarians $\Sigma_k$ för varje klass</h2>
+<div class="key">
+<p><strong>Antagande:</strong> $X \mid Y = k \sim N_p(\mu_k, \Sigma_k)$. Varje klass har både eget centrum och egen form.</p>
+</div>
+<p>Nu går ingenting som innehåller $\Sigma_k$ att stryka. Bara $-\tfrac p2 \log(2\pi)$ är gemensam för alla klasser. Resultatet blir (4.28):</p>
+$$\delta_k(x) = -\tfrac12\, x^\top \Sigma_k^{-1} x + x^\top \Sigma_k^{-1} \mu_k - \tfrac12\, \mu_k^\top \Sigma_k^{-1} \mu_k - \tfrac12 \log|\Sigma_k| + \log \pi_k.$$
+<p>De tre första termerna är bara den utvecklade kvadraten. En kompaktare form, som också är lättare att tolka, är</p>
+$$\delta_k(x) = \underbrace{-\tfrac12\, (x - \mu_k)^\top \Sigma_k^{-1} (x - \mu_k)}_{\text{Mahalanobis-straff}} \;\underbrace{-\; \tfrac12 \log|\Sigma_k|}_{\text{volymstraff}} \;\underbrace{+\; \log \pi_k}_{\text{prior}}.$$
+
+<h3>Term för term</h3>
+<table class="t">
+<tr><th>Term</th><th>Vad den gör</th></tr>
+<tr><td>$-\tfrac12 (x-\mu_k)^\top \Sigma_k^{-1} (x-\mu_k)$</td><td>Straff för att ligga långt från klassens centrum, mätt i klassens <em>egen</em> skala. Samma euklidiska avstånd straffas mindre i en klass med stor spridning i den riktningen.</td></tr>
+<tr><td>$-\tfrac12 \log|\Sigma_k|$</td><td>Straff för att klassen är utspridd. Ett stort moln sprider sin sannolikhetsmassa tunt, så det får lägre täthet nära sitt centrum. Termen hindrar att en mycket bred klass "fångar" allt.</td></tr>
+<tr><td>$\log \pi_k$</td><td>Samma prior som i LDA.</td></tr>
+<tr><td>$-\tfrac12\, x^\top \Sigma_k^{-1} x$</td><td>Den kvadratiska termen. Den beror på $k$ och kan därför inte strykas. Det är den som gör gränserna krökta.</td></tr>
+</table>
+<p>Gränsen $\delta_k(x) = \delta_l(x)$ är en andragradsekvation i $x$. När $p = 2$ är det ett kägelsnitt: en ellips, parabel, hyperbel eller ett linjepar. Om alla $\Sigma_k$ är lika tar de kvadratiska termerna ut varandra, och QDA blir LDA.</p>
+
+<h2><span>5</span>Från $\delta_k$ tillbaka till sannolikheter</h2>
+<p>I båda modellerna är $\log p_k(x) = \delta_k(x) + C(x)$, där $C(x)$ är samma för alla $k$. Därför ger en softmax av diskriminantfunktionerna exakt a posteriori-sannolikheterna:</p>
+$$p_k(x) = \frac{e^{\delta_k(x)}}{\sum_{l=1}^{K} e^{\delta_l(x)}}.$$
+<p>Det är det <code>predict_proba</code> räknar ut. Med två klasser blir $\log\big(p_1/p_2\big) = \delta_1 - \delta_2$. För LDA är det linjärt i $x$, vilket är samma form som logistisk regression. Skillnaden ligger bara i hur koefficienterna skattas.</p>
+
+<h2><span>6</span>Skatta parametrarna</h2>
+<p>De sanna $\pi_k$, $\mu_k$ och $\Sigma$ är okända. Man skattar dem från träningsdatat och sätter in skattningarna i $\delta_k$ (4.20)–(4.22). Här är $n$ antalet observationer och $n_k$ antalet i klass $k$.</p>
+<table class="t">
+<tr><th>Parameter</th><th>Skattning</th><th>I ord</th></tr>
+<tr><td>$\pi_k$</td><td>$\hat\pi_k = \dfrac{n_k}{n}$</td><td>andelen träningsobservationer i klass $k$</td></tr>
+<tr><td>$\mu_k$</td><td>$\hat\mu_k = \dfrac{1}{n_k} \displaystyle\sum_{i:\,y_i = k} x_i$</td><td>klassens medelvärdesvektor</td></tr>
+<tr><td>$\Sigma_k$ (QDA)</td><td>$\hat\Sigma_k = \dfrac{1}{n_k - 1} \displaystyle\sum_{i:\,y_i = k} (x_i - \hat\mu_k)(x_i - \hat\mu_k)^\top$</td><td>stickprovskovariansen inom klass $k$</td></tr>
+<tr><td>$\Sigma$ (LDA)</td><td>$\hat\Sigma = \dfrac{1}{n - K} \displaystyle\sum_{k=1}^{K} \sum_{i:\,y_i = k} (x_i - \hat\mu_k)(x_i - \hat\mu_k)^\top$</td><td><strong>poolad</strong> kovarians: avvikelser från <em>respektive</em> klassmedel, sammanslagna. Det är ett vägt medel av $\hat\Sigma_k$ med vikter $n_k - 1$.</td></tr>
+</table>
+<p class="note">Med $p = 1$ blir den poolade skattningen $\hat\sigma^2$ i (4.20). Nämnaren $n - K$ beror på att man har skattat $K$ medelvärden. Observera att man <em>inte</em> använder avvikelser från totalmedelvärdet. Då skulle avståndet mellan klasserna räknas som brus.</p>
+
+<h3>Antal parametrar</h3>
+<table class="t">
+<tr><th></th><th>Medel</th><th>Kovarians</th><th>Priorer</th><th>$p = 10$, $K = 3$</th></tr>
+<tr><td>LDA</td><td>$Kp$</td><td>$p(p+1)/2$</td><td>$K - 1$</td><td>$30 + 55 + 2 = 87$</td></tr>
+<tr><td>QDA</td><td>$Kp$</td><td>$K\,p(p+1)/2$</td><td>$K - 1$</td><td>$30 + 165 + 2 = 197$</td></tr>
+</table>
+<p>Det är avvägningen mellan bias och varians. QDA är flexiblare och har lägre bias när klasserna verkligen har olika form. Den behöver dock skatta många fler kovariansparametrar, vilket ger hög varians när $n$ är litet. Varje $\hat\Sigma_k$ kräver dessutom $n_k > p$ för att vara inverterbar.</p>
+
+<h2><span>7</span>Räkneexempel med $p = 2$, $K = 2$</h2>
+<p>Nio träningspunkter:</p>
+<table class="t">
+<tr><th>Klass</th><th>Punkter</th><th>$n_k$</th><th>$\hat\pi_k$</th><th>$\hat\mu_k$</th><th>$\hat\Sigma_k$</th></tr>
+<tr><td>1</td><td>(1,2), (2,3), (3,3), (2,4)</td><td>4</td><td>0.444</td><td>$(2,\,3)$</td><td>$\begin{pmatrix} 0.667 & 0.333 \\ 0.333 & 0.667 \end{pmatrix}$</td></tr>
+<tr><td>2</td><td>(5,4), (6,6), (7,5), (6,3), (6,7)</td><td>5</td><td>0.556</td><td>$(6,\,5)$</td><td>$\begin{pmatrix} 0.5 & 0.25 \\ 0.25 & 2.5 \end{pmatrix}$</td></tr>
+</table>
+<p>Poolad kovarians: $\hat\Sigma = \dfrac{3\hat\Sigma_1 + 4\hat\Sigma_2}{9 - 2} = \begin{pmatrix} 0.571 & 0.286 \\ 0.286 & 1.714 \end{pmatrix}$.</p>
+<p>Klass 2 är mycket mer utspridd i $x_2$-led (2.5 mot 0.667). Det är just den sortens skillnad som LDA bortser från och QDA tar med.</p>
+
+<h3>LDA i punkten $x_0 = (3.5,\, 5)$</h3>
+<table class="t">
+<tr><th>$k$</th><th>$w_k = \hat\Sigma^{-1}\hat\mu_k$</th><th>$b_k$</th><th>$\delta_k(x_0) = w_k^\top x_0 + b_k$</th><th>$p_k(x_0)$</th></tr>
+<tr><td>1</td><td>$(2.864,\, 1.273)$</td><td>−5.584</td><td><strong>10.803</strong></td><td><strong>0.964</strong></td></tr>
+<tr><td>2</td><td>$(9.864,\, 1.273)$</td><td>−33.361</td><td>7.526</td><td>0.036</td></tr>
+</table>
+<p>Vikten på $x_2$ är densamma, 1.273, för båda klasserna. Därför är $w_1 - w_2 = (-7,\, 0)$, och gränsen $-7x_1 + 27.78 = 0$ är den lodräta linjen $x_1 \approx 3.97$. Alla punkter med $x_1 < 3.97$ går till klass 1, oavsett $x_2$.</p>
+
+<h3>QDA i samma punkt</h3>
+<table class="t">
+<tr><th>$k$</th><th>Mahalanobis $d_k^2$</th><th>$-\tfrac12 d_k^2$</th><th>$-\tfrac12\log|\hat\Sigma_k|$</th><th>$\log\hat\pi_k$</th><th>$\delta_k(x_0)$</th><th>$p_k(x_0)$</th></tr>
+<tr><td>1</td><td>6.500</td><td>−3.250</td><td>+0.549</td><td>−0.811</td><td><strong>−3.512</strong></td><td><strong>0.977</strong></td></tr>
+<tr><td>2</td><td>13.158</td><td>−6.579</td><td>−0.086</td><td>−0.588</td><td>−7.253</td><td>0.023</td></tr>
+</table>
+<p>Klass 1 är kompakt, och därför har den en positiv volymterm ($|\hat\Sigma_1| = 0.333 < 1$). Klass 2 har den större priorn, men $x_0$ ligger långt från dess centrum i dess egen skala. Båda metoderna väljer klass 1, men med olika säkerhet.</p>
+
+<h2><span>8</span>I scikit-learn</h2>
+<p><code>LinearDiscriminantAnalysis</code> och <code>QuadraticDiscriminantAnalysis</code> från <code>sklearn.discriminant_analysis</code>. Så här hänger attributen ihop med symbolerna efter <code>fit</code>:</p>
+<table class="t">
+<tr><th>Symbol</th><th>Attribut</th><th>Kommentar</th></tr>
+<tr><td>$\hat\pi_k$</td><td><code>priors_</code></td><td>$n_k/n$, om man inte själv anger <code>priors=</code></td></tr>
+<tr><td>$\hat\mu_k$</td><td><code>means_</code></td><td>en rad per klass</td></tr>
+<tr><td>$\hat\Sigma$ (LDA)</td><td><code>covariance_</code></td><td>kräver <code>store_covariance=True</code> (eller <code>solver='lsqr'/'eigen'</code>)</td></tr>
+<tr><td>$\hat\Sigma_k$ (QDA)</td><td><code>covariance_</code></td><td>lista med en matris per klass; kräver <code>store_covariance=True</code></td></tr>
+<tr><td>$w_k$, $b_k$ (LDA)</td><td><code>coef_</code>, <code>intercept_</code></td><td>med två klasser bara en rad: $w_2 - w_1$ och $b_2 - b_1$</td></tr>
+<tr><td>$p_k(x)$</td><td><code>predict_proba(X)</code></td><td>softmax av $\delta_k$</td></tr>
+</table>
+<p><strong>Viktiga argument:</strong></p>
+<table class="t">
+<tr><th>Argument</th><th>Klass</th><th>Betydelse</th></tr>
+<tr><td><code>priors</code></td><td>båda</td><td>Sätter $\pi_k$ manuellt i stället för $n_k/n$, till exempel om träningsdatat är överrepresenterat för en klass.</td></tr>
+<tr><td><code>solver</code></td><td>LDA</td><td><code>'svd'</code> (standard), <code>'lsqr'</code> eller <code>'eigen'</code>. Påverkar bara beräkningen, inte modellen.</td></tr>
+<tr><td><code>shrinkage</code></td><td>LDA</td><td>Krymper $\hat\Sigma$ mot en diagonalmatris. Det hjälper när $p$ är stort relativt $n$. Kräver <code>'lsqr'</code> eller <code>'eigen'</code>.</td></tr>
+<tr><td><code>reg_param</code></td><td>QDA</td><td>Regulariserar varje $\hat\Sigma_k$ mot identiteten, $(1-r)\hat\Sigma_k + rI$, så att den går att invertera även när $n_k$ är litet.</td></tr>
+<tr><td><code>store_covariance</code></td><td>båda</td><td>Sparar kovariansmatriserna i <code>covariance_</code>.</td></tr>
+</table>
+<p class="note"><strong>Varning om nämnare:</strong> scikit-learn 1.9 skattar kovarianserna med ML-nämnare, alltså $n$ för den poolade LDA-kovariansen och $n_k$ för QDA, i stället för bokens $n - K$ och $n_k - 1$. I exemplet ovan ger <code>predict_proba</code> därför 0.986 (LDA) och 0.988 (QDA) i stället för 0.964 och 0.977. Skillnaden försvinner när $n$ växer. Med ML-nämnarna återskapar handräkningen scikit-learns siffror exakt (<code>code/html_checks/lda_qda_check.py</code>).</p>
+
+<h2><span>9</span>Sammanfattning</h2>
+<table class="t">
+<tr><th></th><th>LDA</th><th>QDA</th></tr>
+<tr><td>Modell för $X \mid Y = k$</td><td>$N_p(\mu_k, \Sigma)$</td><td>$N_p(\mu_k, \Sigma_k)$</td></tr>
+<tr><td>$\delta_k(x)$</td><td>$x^\top\Sigma^{-1}\mu_k - \tfrac12\mu_k^\top\Sigma^{-1}\mu_k + \log\pi_k$</td><td>$-\tfrac12(x-\mu_k)^\top\Sigma_k^{-1}(x-\mu_k) - \tfrac12\log|\Sigma_k| + \log\pi_k$</td></tr>
+<tr><td>Form i $x$</td><td>linjär</td><td>kvadratisk</td></tr>
+<tr><td>Beslutsgräns</td><td>hyperplan</td><td>kägelsnitt / kvadratisk yta</td></tr>
+<tr><td>Parametrar</td><td>$\pi_k$, $\mu_k$, ett gemensamt $\Sigma$</td><td>$\pi_k$, $\mu_k$, ett $\Sigma_k$ per klass</td></tr>
+<tr><td>Välj när</td><td>få observationer, eller liknande spridning i klasserna</td><td>gott om data och tydligt olika spridning eller korrelation i klasserna</td></tr>
+</table>
+
+</main>
+</body>
+</html>

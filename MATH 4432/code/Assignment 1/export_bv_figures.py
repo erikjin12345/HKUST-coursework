@@ -16,7 +16,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "figures")
+OUT = os.path.join(HERE, "..", "figures")
 os.makedirs(OUT, exist_ok=True)
 
 np.random.seed(0)

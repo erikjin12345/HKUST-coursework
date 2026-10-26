@@ -1,0 +1,236 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{handwritten/}}
+
+\lstdefinestyle{pycode}{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize,
+  commentstyle=\color{teal!70!black},
+  keywordstyle=\color{blue!60!black}\bfseries,
+  stringstyle=\color{red!60!black},
+  backgroundcolor=\color{gray!6},
+  frame=single, rulecolor=\color{gray!40},
+  breaklines=true, columns=fullflexible, keepspaces=true,
+  showstringspaces=false, upquote=true
+}
+\lstdefinestyle{pyout}{
+  basicstyle=\ttfamily\footnotesize,
+  frame=leftline, rulecolor=\color{gray!60},
+  breaklines=true, columns=fullflexible, keepspaces=true
+}
+\lstset{style=pycode}
+
+% one handwritten page, scaled to fit
+\newcommand{\handwritten}[2][0.82]{%
+  \begin{center}\includegraphics[width=\textwidth,height=#1\textheight,keepaspectratio]{#2}\end{center}}
+
+\title{MATH 4511 -- Assignment 2}
+\author{Erik Jin \\ Student ID: \texttt{XXXXXXXX}}
+\date{2 November 2026}
+
+\begin{document}
+\maketitle
+
+\noindent The solutions are handwritten and included as scans. The numerical answers are computed in Python
+(notebook \texttt{MATH4511\_assignment2.ipynb}); each code block below is copied from that notebook and is
+followed by its output.
+
+% =====================================================================
+\section*{Problem 1 -- Pricing an on-going interest rate swap}
+
+The swap is valued from the position of the floating rate receiver (fixed rate payer),
+$V = V_{\text{floating}} - V_{\text{fixed}}$. The remaining payment dates are $t_1 = 3/12$, $t_2 = 9/12$ and
+$t_3 = 15/12$, and the spot rates (nominal, compounded semi-annually) give the discount factors
+$B(0;t) = (1 + r_t/2)^{-2t}$.
+
+\handwritten{IMG_4429.jpg}
+\handwritten{IMG_4431.jpg}
+\handwritten{IMG_4432.jpg}
+
+\begin{lstlisting}
+spot_rates = { # spot rates quoted as annual nominal rates
+    3/12: 0.034,
+    6/12: 0.035,
+    9/12: 0.036,
+    12/12: 0.037,
+    15/12: 0.038
+}
+# the exchanges are made semiannually in the swap and the next exchange will be made 3 months from today
+m = 2
+r_fixed = 0.036
+r_last = 0.037 # the 6 month annual nominal spot rate the period before
+# We are going to calculate the cost to enter the fixed rate position in the swap, ie the party that pays the fixed rate and received the floating rate
+payment_times = [3/12, 9/12, 15/12]
+\end{lstlisting}
+\begin{lstlisting}
+def r_eff(r_nominal, m = 2): # converts rates to annual effective rates
+    return (1 + r_nominal / m) ** m - 1
+def B(spot_rates, t): # converts the spot rate to a discount factor
+    spot_rate = spot_rates[t]
+    effective_rate = r_eff(spot_rate)
+    return (1 / (1 + effective_rate) ** t)
+#a) Using the original formula
+V_fixed = sum(
+    r_fixed / 2 * B(spot_rates, t) for t in payment_times
+)
+V_floating = (r_last / 2)*B(spot_rates, 3/12) + B(spot_rates, 3/12) - B(spot_rates, 15/12)
+V_swap = V_floating - V_fixed
+print(f'The price of the swap agreement is ${V_swap:.4f}N, where N is the principal')
+
+#b) Using the difference in value between a floating rate note and a fixed rate bond
+P_bond = sum(
+    r_fixed / m * B(spot_rates, t) for t in payment_times
+) + B(spot_rates, payment_times[-1])
+P_frn = (1 + r_last / m) * B(spot_rates, payment_times[0])
+V_swap = P_frn - P_bond
+print(f'The price of the swap agreement is ${V_swap:.4f}F, where F is the face value of the floating rate note and the fixed rate bond')
+
+#c) Using forward rates
+
+f_12 = B(spot_rates, payment_times[0]) / B(spot_rates, payment_times[1]) - 1
+f_23 = B(spot_rates, payment_times[1]) / B(spot_rates, payment_times[2]) - 1
+V_forward = (r_last / 2) * B(spot_rates, payment_times[0]) + f_12 * B(spot_rates, payment_times[1]) + f_23 * B(spot_rates, payment_times[2])
+V_swap = V_forward - V_fixed
+print(f'The price of the swap agreement is ${V_swap:.4f}F, where F is the face value of the fixed rate bond and the principal of the forward rate agreement')
+
+#d) Using swap rate quoted at current time
+kt = 2 * (V_floating) / sum(
+    B(spot_rates, t) for t in payment_times
+)
+V_swap = sum(
+    (kt - r_fixed) / 2 * B(spot_rates, t) for t in payment_times
+)
+print(f'The price of the swap agreement is ${V_swap:.4f}N, where N is the principal of the swaps')
+\end{lstlisting}
+\begin{lstlisting}[style=pyout]
+The price of the swap agreement is $0.0034N, where N is the principal
+The price of the swap agreement is $0.0034F, where F is the face value of the floating rate note and the fixed rate bond
+The price of the swap agreement is $0.0034F, where F is the face value of the fixed rate bond and the principal of the forward rate agreement
+The price of the swap agreement is $0.0034N, where N is the principal of the swaps
+\end{lstlisting}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lr}
+    \toprule
+    Quantity & Value (per unit of $N$) \\
+    \midrule
+    $B(0;3/12),\ B(0;9/12),\ B(0;15/12)$ & $0.991607,\ 0.973595,\ 0.954036$ \\
+    $V_{\text{fixed}}$ & $0.052546$ \\
+    $V_{\text{floating}}$ & $0.055916$ \\
+    Forward rates per half-year $f_{[t_1,t_2]},\ f_{[t_2,t_3]}$ & $0.018500,\ 0.020502$ \\
+    Swap rate today $K_t$ (nominal) & $3.831\%$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\noindent\textbf{Answer:} all four methods give $V \approx 0.003370\,N$. Since the swap rate today
+($K_t = 3.831\%$) is above the fixed rate $K = 3.6\%$, the swap has positive value for the floating rate receiver.
+
+% =====================================================================
+\section*{Problem 2 -- Currency swap}
+
+\handwritten{IMG_4433.jpg}
+\handwritten[0.45]{IMG_4434.jpg}
+
+\noindent In the swap, A pays $5.1\%$ on $N_{USD}$ and receives $5.0\%$ on $N_{CAD}$, and B receives $6.1\%$ on
+$N_{USD}$ and pays $6.3\%$ on $N_{CAD}$. The principals are exchanged at time $0$ and again at year $5$. Both
+companies save $0.5\%$ and the institution earns $1.3\%$ in CAD minus $1.0\%$ in USD, i.e.\ $0.3\%$ at today's
+exchange rate; its profit is therefore exposed to exchange rate risk.
+
+\noindent In (b) the rates are annual effective and the payments annual, so $B(0;t) = 1.05^{-t}$ (USD) and
+$B_F(0;t) = 1.045^{-t}$ (CAD). The CAD leg is converted to USD with $S_0 = 0.85$ USD per CAD.
+
+\begin{lstlisting}
+#a) 
+r_FI_to_B = 0.061
+r_B = 0.063
+
+#b)
+r_USD = 0.05
+r_CAD = 0.045
+N_USD = 85_000
+N_CAD = 100_000
+S = 0.85 # exchange rate
+
+V_pay_in = N_USD*(sum(r_FI_to_B/(1 + r_USD) ** t for t in range(1, 5+1)) + 1/(1 + r_USD) ** 5)
+V_pay_out = S * N_CAD*(sum(r_B/(1 + r_CAD) ** t for t in range(1, 5+1)) + 1/(1 + r_CAD) ** 5)
+V_swap = V_pay_in - V_pay_out
+print(f'The value of the currency swap for company B is ${V_swap:.4f}')
+\end{lstlisting}
+\begin{lstlisting}[style=pyout]
+The value of the currency swap for company B is $-2668.6037
+\end{lstlisting}
+
+\noindent\textbf{Answer:} the swap owned by company B is worth about $-2668.60$ USD. B pays $6.3\%$ in CAD while the
+CAD rate is only $4.5\%$, which outweighs the $6.1\%$ it receives in USD against a USD rate of $5\%$.
+
+% =====================================================================
+\section*{Problem 3 -- Swap rate versus coupon rate}
+
+\handwritten{IMG_4435.jpg}
+
+\noindent With yield $3.9\%$ the bond price is $P \approx 10\,045.03 > 10\,000$, so the bond trades above par.
+The swap rate is the coupon rate of a par bond, hence \textbf{(C)}: $K < 4\%$.
+
+% =====================================================================
+\section*{Bonus Problem -- Interest rate swap}
+
+\handwritten{IMG_4436.jpg}
+
+\subsection*{(b) Value of the swap owned by company A}
+
+In the swap of (a), A receives $5\%$ fixed and pays $s(1) - 0.2\%$ to the institution. With a flat term
+structure at $5\%$ all 1-year forward rates equal $5\%$, so the floating payments are valued with $s(1) = 5\%$ and
+discounted with $B(0;t) = 1.05^{-t}$. A notional principal is added to both legs; it cancels.
+
+\begin{lstlisting}
+#a) and b) 
+s1 = 0.05
+N = 2_000_000
+T = 5
+A_rates = {
+    "r_in": 0.05,
+    "r_out": s1 - 0.002
+}
+B_rates = {
+    "r_in": s1 + 0.006,
+    "r_out": 0.061
+}
+FI_rates = {
+    "r_in": s1 + 0.059,
+    "r_out": s1 + 0.056
+}
+
+# The value for A is the difference between present value of the cash flows in vs the cash flows out
+V_in = N * (1 / (1 + s1) ** T + sum(
+    A_rates["r_in"] / (1 + s1) ** t for t in range(1, T + 1)
+))
+V_out = N * (1 / (1 + s1) ** T + sum(
+    A_rates["r_out"] / (1 + s1) ** t for t in range(1, T + 1)
+))
+V_A = V_in - V_out
+print(f'The value of the swap for company A is ${V_A:.4f}')
+\end{lstlisting}
+\begin{lstlisting}[style=pyout]
+The value of the swap for company A is $17317.9067
+\end{lstlisting}
+
+\noindent\textbf{Answer:} $V_A \approx 17\,317.91$. The fixed leg is worth exactly $N$ because its coupon equals the
+market rate, while A pays $0.2\%$ less than the market rate on the floating leg.
+
+\subsection*{(c)}
+
+\handwritten{IMG_4437.jpg}
+
+\end{document}

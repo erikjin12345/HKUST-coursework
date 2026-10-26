@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dimensionalitetens förbannelse</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.65 Georgia, "Times New Roman", serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); margin-right: 16px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 {
+    font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px;
+    border-top: 1px solid var(--rule);
+  }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  .key {
+    background: var(--key); border-left: 3px solid var(--accent);
+    padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0;
+  }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  ol.steps { padding-left: 0; list-style: none; counter-reset: s; }
+  ol.steps > li {
+    counter-increment: s; position: relative; padding: 4px 0 4px 44px; margin: 12px 0;
+  }
+  ol.steps > li::before {
+    content: counter(s); position: absolute; left: 0; top: 6px;
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1px solid var(--accent); color: var(--accent);
+    font: 600 0.85rem/26px -apple-system, "Segoe UI", sans-serif; text-align: center;
+  }
+  table.t { border-collapse: collapse; width: 100%; font-size: 0.93rem; margin: 16px 0; }
+  table.t th, table.t td { padding: 6px 8px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+  table.t th { font-family: -apple-system, "Segoe UI", sans-serif; font-size: 0.85rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a><a href="lda-qda.html">LDA och QDA</a><a href="classifiers.html">Klassificeringsmodellerna</a></nav>
+
+<h1>Dimensionalitetens förbannelse</h1>
+<p class="sub">ISLP kapitel 4, övning 4 (s. 193–194). Varför KNN och andra lokala metoder fungerar dåligt när $p$ är stort.</p>
+
+<h2><span>1</span>Hur man ska tänka</h2>
+<p>KNN predikterar med hjälp av de träningspunkter som ligger <em>nära</em> testpunkten. Hela övningen ställer en enda fråga: <strong>hur stor andel av datat ligger "nära" när antalet dimensioner växer?</strong></p>
+<div class="key">
+<p>Nyckeln: när $X$ är likformigt fördelat på enhetskuben $[0,1]^p$ är <strong>andelen observationer i ett område lika med områdets volym</strong>. Hela kuben har volym 1, och tätheten är 1 överallt.</p>
+</div>
+<p>Varje deluppgift handlar alltså om att räkna ut volymen av en låda. Volymen av en låda är produkten av sidlängderna.</p>
+
+<h2><span>2</span>(a) $p = 1$</h2>
+<p>Området är ett intervall av längd $0.1$ kring testpunkten, till exempel $[0.55, 0.65]$ för $X = 0.6$. Andel = längd:</p>
+$$\text{andel} = 0.1 = 10\,\%.$$
+<p><strong>Kanterna.</strong> För $X < 0.05$ eller $X > 0.95$ skulle intervallet sticka ut utanför $[0,1]$. Det finns två rimliga tolkningar:</p>
+<table class="t">
+<tr><th>Tolkning</th><th>Andel i genomsnitt</th></tr>
+<tr><td>"De 10 % av intervallet som ligger närmast". Fönstret flyttas in så att det alltid har längd 0.1.</td><td>$0.1$ exakt</td></tr>
+<tr><td>Fönstret $[x-0.05,\ x+0.05]$ klipps vid 0 och 1.</td><td>$2\displaystyle\int_0^{0.05} (x + 0.05)\,dx + 0.9 \cdot 0.1 = 0.0975$</td></tr>
+</table>
+<p>Det vanliga svaret är 10 %. Nämner man kanteffekten och säger vilken tolkning man har valt är det fullt godkänt. Kanteffekten ändrar ingenting i slutsatsen.</p>
+
+<h2><span>3</span>(b) $p = 2$</h2>
+<p>Nu ska punkten ligga inom 10 % i $X_1$-led <strong>och</strong> inom 10 % i $X_2$-led. Området är en kvadrat med sidan $0.1$:</p>
+$$\text{andel} = 0.1 \times 0.1 = 0.01 = 1\,\%.$$
+<p>Ett annat sätt att se det: $X_1$ och $X_2$ är oberoende och likformiga, så</p>
+$$\Pr(X_1 \text{ nära}\ \cap\ X_2 \text{ nära}) = \Pr(X_1 \text{ nära}) \cdot \Pr(X_2 \text{ nära}) = 0.1 \cdot 0.1.$$
+<p class="note">Med den klippta tolkningen blir det $0.0975^2 \approx 0.0095$.</p>
+
+<h2><span>4</span>(c) $p = 100$</h2>
+<p>Samma resonemang med 100 oberoende villkor:</p>
+$$\text{andel} = 0.1^{100} = 10^{-100}.$$
+<p>Som jämförelse uppskattas antalet atomer i universum till ungefär $10^{80}$. Även med en träningsmängd lika stor som det skulle lådan i genomsnitt vara tom.</p>
+
+<h2><span>5</span>(d) Slutsatsen för KNN</h2>
+<p>Allmänt är andelen $0.1^p$, så den krymper <strong>exponentiellt</strong> med $p$. Med $n = 10\,000$ träningspunkter blir det förväntade antalet punkter i lådan:</p>
+<table class="t">
+<tr><th>$p$</th><th>1</th><th>2</th><th>3</th><th>5</th><th>10</th><th>100</th></tr>
+<tr><td>andel $0.1^p$</td><td>0.1</td><td>0.01</td><td>0.001</td><td>$10^{-5}$</td><td>$10^{-10}$</td><td>$10^{-100}$</td></tr>
+<tr><td>förväntat antal av 10 000</td><td>1 000</td><td>100</td><td>10</td><td>0.1</td><td>$10^{-6}$</td><td>≈ 0</td></tr>
+</table>
+<p>Argumentet att skriva:</p>
+<ol class="steps">
+  <li>KNN bygger på antagandet att närliggande punkter har liknande respons. Prediktionen är ett medelvärde, eller en majoritetsröst, över grannarna.</li>
+  <li>När $p$ växer finns det nästan inga träningspunkter i ett litet område kring testpunkten.</li>
+  <li>KNN tar ändå $K$ grannar. Då måste den gå långt bort för att hitta dem, och de "närmaste" grannarna är inte längre nära i någon meningsfull mening.</li>
+  <li>Prediktionen bygger då på punkter som inte är representativa för testpunkten. Det ger hög bias, eller hög varians om man minskar $K$. Metoden förlorar den lokalitet som var hela poängen.</li>
+</ol>
+<p>Parametriska metoder som linjär och logistisk regression samt LDA drabbas mindre. De antar en global form och använder <em>alla</em> punkter för att skatta ett fåtal parametrar.</p>
+
+<h2><span>6</span>(e) Vänd på frågan: hur stor måste lådan vara?</h2>
+<p>Nu kräver vi att lådan ska innehålla 10 % av datat och frågar hur lång sidan $\ell$ måste vara. Volym = andel ger</p>
+$$\ell^{\,p} = 0.1 \quad\Longrightarrow\quad \ell = 0.1^{1/p}.$$
+<table class="t">
+<tr><th>$p$</th><th>1</th><th>2</th><th>3</th><th>10</th><th>100</th></tr>
+<tr><td>sidlängd $\ell$</td><td>0.100</td><td>0.316</td><td>0.464</td><td>0.794</td><td><strong>0.977</strong></td></tr>
+</table>
+<p><strong>Kommentar:</strong> Med $p = 100$ måste lådan täcka 97.7 % av varje variabels hela intervall för att få med bara 10 % av observationerna. "Grannskapet" är då nästan hela rummet. En granne som skiljer sig med upp till 0.977 i varje koordinat är inte lokal, och KNN blir i praktiken ett globalt medelvärde.</p>
+<p>(c) och (e) är två sidor av samma sak:</p>
+<table class="t">
+<tr><th></th><th>Vad hålls fast</th><th>Vad händer när $p$ växer</th></tr>
+<tr><td>(a)–(c)</td><td>grannskapets storlek per dimension (0.1)</td><td>andelen data i grannskapet $\to 0$</td></tr>
+<tr><td>(e)</td><td>andelen data (10 %)</td><td>grannskapets storlek per dimension $\to 1$</td></tr>
+</table>
+<p>Det går inte att få både ett litet grannskap och tillräckligt med punkter i det.</p>
+
+<h2><span>7</span>Vanliga misstag</h2>
+<p><strong>Att addera i stället för att multiplicera.</strong> Villkoren gäller samtidigt i varje dimension ("och"), så andelarna multipliceras. Svaret i (b) är $0.1 \cdot 0.1$, inte $0.1 + 0.1$.</p>
+<p><strong>I (e): att dela 0.1 med $p$ eller ta $0.1^p$.</strong> Det är <em>roten</em> $0.1^{1/p}$, eftersom man löser $\ell^p = 0.1$.</p>
+<p><strong>Att glömma kommentaren.</strong> (d) och (e) frågar efter ett argument. Siffrorna räcker inte, man måste förklara vad de betyder för KNN.</p>
+
+<p class="note">Siffrorna, och en simulering som bekräftar $0.0101 \approx 0.01$ för $p = 2$ och $1.1 \cdot 10^{-5} \approx 10^{-5}$ för $p = 5$, kommer från <code>code/html_checks/curse_check.py</code>.</p>
+
+</main>
+</body>
+</html>

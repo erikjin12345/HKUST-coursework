@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LDA: diskriminantfunktionen</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.65 Georgia, "Times New Roman", serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); margin-right: 16px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 {
+    font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px;
+    border-top: 1px solid var(--rule);
+  }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  .key {
+    background: var(--key); border-left: 3px solid var(--accent);
+    padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0;
+  }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  ol.steps { padding-left: 0; list-style: none; counter-reset: s; }
+  ol.steps > li {
+    counter-increment: s; position: relative; padding: 4px 0 4px 44px; margin: 12px 0;
+  }
+  ol.steps > li::before {
+    content: counter(s); position: absolute; left: 0; top: 6px;
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1px solid var(--accent); color: var(--accent);
+    font: 600 0.85rem/26px -apple-system, "Segoe UI", sans-serif; text-align: center;
+  }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a><a href="classifiers.html">Klassificeringsmodellerna</a></nav>
+
+<h1>Från $p_k(x)$ till $\delta_k(x)$</h1>
+<p class="sub">ISLP kapitel 4, övning 2. LDA med en prediktor, ekvation (4.17) → (4.18), s. 147–148.</p>
+
+<h2><span>1</span>Vad ska visas?</h2>
+<p>Antag att observationerna i klass $k$ är $N(\mu_k, \sigma^2)$, med <strong>samma</strong> varians $\sigma^2$ för alla $K$ klasser, och att klassen har a priori-sannolikheten $\pi_k$. Bayes sats ger a posteriori-sannolikheten</p>
+$$p_k(x) = \frac{\pi_k \,\dfrac{1}{\sqrt{2\pi}\,\sigma} \exp\!\Big(-\dfrac{(x-\mu_k)^2}{2\sigma^2}\Big)}
+{\displaystyle\sum_{l=1}^{K} \pi_l \,\dfrac{1}{\sqrt{2\pi}\,\sigma} \exp\!\Big(-\dfrac{(x-\mu_l)^2}{2\sigma^2}\Big)}. \qquad (4.17)$$
+<p>Bayes-klassificeraren väljer det $k$ som gör $p_k(x)$ störst. Påståendet är att det alltid är samma $k$ som gör</p>
+$$\delta_k(x) = x\,\frac{\mu_k}{\sigma^2} - \frac{\mu_k^2}{2\sigma^2} + \log \pi_k \qquad (4.18)$$
+<p>störst. Det som ska visas är alltså</p>
+<div class="key">
+$$\arg\max_k \, p_k(x) \;=\; \arg\max_k \, \delta_k(x) \quad \text{för varje } x.$$
+</div>
+<p class="note">Observera: $p_k(x)$ och $\delta_k(x)$ är <em>inte</em> samma tal. $\delta_k$ kan till exempel vara negativ. Det är bara rangordningen mellan klasserna som är densamma.</p>
+
+<h2><span>2</span>De två reglerna som gör beviset möjligt</h2>
+<p>Håll $x$ fixt och jämför klasserna $k = 1, \dots, K$. Två operationer ändrar inte vilket $k$ som vinner:</p>
+<p><strong>(R1) Konstanter som inte beror på $k$.</strong> Om $c > 0$ inte beror på $k$ har $c\,g_k$ och $g_k$ samma arg max. Om $a$ inte beror på $k$ har $g_k + a$ och $g_k$ samma arg max.</p>
+<p><strong>(R2) Strikt växande funktioner.</strong> Om $h$ är strikt växande gäller $g_j > g_k \iff h(g_j) > h(g_k)$. Alltså har $h(g_k)$ och $g_k$ samma arg max. Vi använder $h = \log$, som är strikt växande på $(0, \infty)$.</p>
+
+<h2><span>3</span>Beviset steg för steg</h2>
+<ol class="steps">
+  <li><strong>Stryk nämnaren (R1).</strong> Nämnaren summerar över <em>alla</em> klasser $l$, så den är samma positiva tal oavsett vilket $k$ vi tittar på. Kalla den $D(x)$:
+    $$p_k(x) = \frac{1}{D(x)} \cdot \pi_k \frac{1}{\sqrt{2\pi}\,\sigma} \exp\!\Big(-\frac{(x-\mu_k)^2}{2\sigma^2}\Big).$$
+    Därför räcker det att maximera täljaren
+    $$g_k(x) = \pi_k \frac{1}{\sqrt{2\pi}\,\sigma} \exp\!\Big(-\frac{(x-\mu_k)^2}{2\sigma^2}\Big).$$
+  </li>
+  <li><strong>Ta logaritmen (R2).</strong> $g_k(x) > 0$, så $\log$ är definierad och bevarar ordningen. Logaritmen av en produkt blir en summa, och $\log e^{u} = u$:
+    $$\log g_k(x) = \log \pi_k \;-\; \log\!\big(\sqrt{2\pi}\,\sigma\big) \;-\; \frac{(x-\mu_k)^2}{2\sigma^2}.$$
+  </li>
+  <li><strong>Stryk normaliseringskonstanten (R1).</strong> $\log(\sqrt{2\pi}\,\sigma)$ innehåller inget $k$, <em>eftersom $\sigma$ är gemensam för alla klasser</em>. Kvar att maximera:
+    $$\log \pi_k - \frac{(x-\mu_k)^2}{2\sigma^2}.$$
+  </li>
+  <li><strong>Utveckla kvadraten.</strong> $(x-\mu_k)^2 = x^2 - 2x\mu_k + \mu_k^2$, så
+    $$-\frac{(x-\mu_k)^2}{2\sigma^2} = -\frac{x^2}{2\sigma^2} + \frac{2x\mu_k}{2\sigma^2} - \frac{\mu_k^2}{2\sigma^2}
+    = -\frac{x^2}{2\sigma^2} + x\,\frac{\mu_k}{\sigma^2} - \frac{\mu_k^2}{2\sigma^2}.$$
+  </li>
+  <li><strong>Stryk $x^2$-termen (R1).</strong> $-x^2/(2\sigma^2)$ beror bara på $x$ och den gemensamma $\sigma$, inte på $k$. Det som återstår är
+    <div class="key">
+    $$\delta_k(x) = x\,\frac{\mu_k}{\sigma^2} - \frac{\mu_k^2}{2\sigma^2} + \log \pi_k.$$
+    </div>
+    Varje steg bevarade arg max, alltså är $\arg\max_k p_k(x) = \arg\max_k \delta_k(x)$. $\blacksquare$
+  </li>
+</ol>
+
+<h2><span>4</span>Allt på en rad</h2>
+<p>Steg 1–5 tillsammans säger att</p>
+$$\log p_k(x) = \delta_k(x) \;\underbrace{-\; \log\!\big(\sqrt{2\pi}\,\sigma\big) - \frac{x^2}{2\sigma^2} - \log D(x)}_{\text{samma för alla } k}.$$
+<p>$\log p_k$ och $\delta_k$ skiljer sig alltså bara med en term som är lika för alla klasser. Därför vinner samma klass.</p>
+
+<h2><span>5</span>Räkneexempel</h2>
+<p>Två klasser med $\mu_1 = -1$, $\mu_2 = 2$, $\sigma = 1.5$, $\pi_1 = 0.7$ och $\pi_2 = 0.3$.</p>
+<table style="border-collapse:collapse;width:100%;font-size:0.95rem">
+  <tr style="border-bottom:1px solid var(--rule)"><th style="text-align:left">$x$</th><th>$k$</th><th>$p_k(x)$</th><th>$\log g_k(x)$</th><th>$\delta_k(x)$</th><th>$\log g_k - \delta_k$</th></tr>
+  <tr><td>0.8</td><td>1</td><td><strong>0.610</strong></td><td>−2.401</td><td><strong>−0.934</strong></td><td>−1.467</td></tr>
+  <tr style="border-bottom:1px solid var(--rule)"><td></td><td>2</td><td>0.390</td><td>−2.848</td><td>−1.382</td><td>−1.467</td></tr>
+  <tr><td>1.5</td><td>1</td><td>0.381</td><td>−3.070</td><td>−1.246</td><td>−1.824</td></tr>
+  <tr><td></td><td>2</td><td><strong>0.619</strong></td><td>−2.584</td><td><strong>−0.760</strong></td><td>−1.824</td></tr>
+</table>
+<p>För båda $x$ väljer $p_k$ och $\delta_k$ samma klass. Den sista kolumnen är samma för båda klasserna: det är just konstanten $-\log(\sqrt{2\pi}\sigma) - x^2/(2\sigma^2)$ som ströks i steg 3 och 5. Notera också att $\delta_k$ är negativ, så den är ingen sannolikhet.</p>
+<p><strong>Beslutsgränsen</strong> ligger där $\delta_1(x) = \delta_2(x)$. $\delta_k$ är linjär i $x$, så det ger en enda punkt:</p>
+$$x^* = \frac{\mu_1 + \mu_2}{2} + \frac{\sigma^2 \log(\pi_1/\pi_2)}{\mu_2 - \mu_1} = 0.5 + \frac{2.25 \cdot \log(7/3)}{3} \approx 1.135.$$
+<p>Gränsen ligger till höger om mittpunkten 0.5, eftersom klass 1 är vanligare. Med $\pi_1 = \pi_2$ hamnar den precis i mitten, vilket stämmer med (4.19) i boken.</p>
+
+<h2><span>6</span>Var antagandet om gemensam varians används</h2>
+<p>Det används i <strong>steg 3</strong> och <strong>steg 5</strong>. Om varje klass har sin egen $\sigma_k$ beror båda termerna på $k$ och får inte strykas:</p>
+$$\log g_k(x) = \log \pi_k - \log \sigma_k - \frac{x^2}{2\sigma_k^2} + x\,\frac{\mu_k}{\sigma_k^2} - \frac{\mu_k^2}{2\sigma_k^2} + \text{konst}.$$
+<p>Då blir diskriminantfunktionen kvadratisk i $x$. Det är QDA, och det är övning 3.</p>
+
+<h2><span>7</span>Att tänka på i inlämningen</h2>
+<p><strong>Motivera varje strykning.</strong> Skriv uttryckligen "beror inte på $k$" och, i steg 3 och 5, "eftersom $\sigma$ är gemensam".</p>
+<p><strong>Motivera logaritmen.</strong> Den är strikt växande och $g_k(x) > 0$.</p>
+<p><strong>Påstå inte likhet.</strong> Skriv inte $p_k(x) = \delta_k(x)$. Det är bara arg max som är lika.</p>
+<p class="note">Siffrorna i avsnitt 5 kommer från <code>code/html_checks/lda_check.py</code>.</p>
+
+</main>
+</body>
+</html>

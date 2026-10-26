@@ -1,4 +1,4 @@
-"""Export all figures referenced in Assignment1_improved.tex to code/figures/.
+"""Export all figures referenced in latex/Assignment1.tex to code/figures/.
 
 Run from anywhere:  python export_figures.py
 Figures are regenerated from the ISLP data sets, so the notebook does not need to be re-run.
@@ -16,7 +16,7 @@ from statsmodels.nonparametric.smoothers_lowess import lowess
 from ISLP import load_data
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "figures")
+OUT = os.path.join(HERE, "..", "figures")
 os.makedirs(OUT, exist_ok=True)
 
 
