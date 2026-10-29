@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Varför X̄ och s² är oberoende</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.65 Georgia, "Times New Roman", serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); margin-right: 16px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 { font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px; border-top: 1px solid var(--rule); }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  .key { background: var(--key); border-left: 3px solid var(--accent); padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0; }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .scroll { overflow-x: auto; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.93rem; font-family: -apple-system, "Segoe UI", sans-serif; background: var(--card); }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; }
+  code { font-size: 0.9em; }
+  .chain { text-align: center; font-size: 1.1rem; margin: 20px 0; }
+  .chain .arrow { color: var(--muted); margin: 0 12px; }
+  svg text { font: 13px -apple-system, "Segoe UI", sans-serif; fill: var(--fg); }
+  svg .muted { fill: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a></nav>
+
+<h1>Varför $\bar X$ och $s^2$ är oberoende</h1>
+<p class="sub">L3 part 1, Example 8 (s. 31–33). Beviset steg för steg, med de två skrivfelen i anteckningarna utpekade. Siffrorna kommer från <code>code/html_checks/xbar_s2_check.py</code>.</p>
+
+<p>$X_1, \dots, X_n$ är oberoende $N(\mu, \sigma^2)$ och</p>
+$$\bar X = \frac1n\sum_{i=1}^n X_i, \qquad s^2 = \frac{1}{n-1}\sum_{i=1}^n (X_i - \bar X)^2.$$
+<p>Påståendet är att $\bar X$ och $s^2$ är oberoende. Beviset har fyra led:</p>
+
+<div class="chain">
+  $s^2 = g(\vec Y)$ <span class="arrow">→</span>
+  $(\bar X, \vec Y)$ multivariat normal <span class="arrow">→</span>
+  $\text{Cov}(\bar X, \vec Y) = 0$ <span class="arrow">→</span>
+  $\bar X \perp \vec Y \Rightarrow \bar X \perp s^2$
+</div>
+
+<h2><span>1</span>Avvikelserna summerar till noll</h2>
+
+<p>Summan av alla avvikelser från medelvärdet är noll:</p>
+$$\sum_{i=1}^n (X_i - \bar X) = n\bar X - n\bar X = 0.$$
+<p>Den sista avvikelsen är därför helt bestämd av de övriga:</p>
+$$X_n - \bar X = -\sum_{i=1}^{n-1}(X_i - \bar X).$$
+<p>Av de $n$ avvikelserna är bara $n-1$ fria. Det är därför man i fortsättningen bara behöver hålla reda på</p>
+$$\vec Y = \begin{pmatrix} X_1 - \bar X \\ \vdots \\ X_{n-1} - \bar X \end{pmatrix} \in \mathbb R^{n-1}.$$
+
+<div class="key">
+<p><strong>Skrivfel 1 (s. 32, överst):</strong> där står $\vec Y = (X_1 - \bar X, \dots, X_n - \bar X)^\top$. Det ska sluta vid $X_{n-1} - \bar X$. Matrisen direkt under har $n$ rader ($1$ för $\bar X$ och $n-1$ för $\vec Y$), och $B$ på s. 33 har sin sista etta i kolumn $n-1$. Resten av beviset använder alltså $n-1$ komponenter.</p>
+</div>
+
+<h2><span>2</span>$s^2$ som en funktion av $\vec Y$</h2>
+
+<p>Dela upp summan i de första $n-1$ termerna och den sista, och sätt in uttrycket för $X_n - \bar X$ från steg 1:</p>
+$$s^2 = \frac{1}{n-1}\left[\sum_{i=1}^{n-1}(X_i - \bar X)^2 + \Big(\sum_{i=1}^{n-1}(X_i - \bar X)\Big)^2\right].$$
+<p>Kvadraten av en summa med minustecken framför är samma som kvadraten av summan, så minustecknet försvinner. I vektorform, med $\mathbf 1 = (1, \dots, 1)^\top \in \mathbb R^{n-1}$:</p>
+$$s^2 = \frac{1}{n-1}\Big[\vec Y^\top \vec Y + (\mathbf 1^\top \vec Y)^2\Big] = \frac{1}{n-1}\,\vec Y^\top\big(I + \mathbf 1\mathbf 1^\top\big)\vec Y =: g(\vec Y).$$
+
+<p>Kontroll på ett slumpat stickprov med $n = 6$:</p>
+<div class="scroll"><table>
+  <tr><th>Uttryck</th><th>Värde</th></tr>
+  <tr><td>$s^2$ direkt (<code>var</code>, ddof = 1)</td><td>0.152032</td></tr>
+  <tr><td>$\frac{1}{n-1}\vec Y^\top \vec Y$ (sista termen saknas)</td><td>0.130649</td></tr>
+  <tr><td>$\frac{1}{n-1}\big[\vec Y^\top \vec Y + (\mathbf 1^\top \vec Y)^2\big]$</td><td>0.152032</td></tr>
+  <tr><td>$\frac{1}{n-1}\vec Y^\top (I + \mathbf 1\mathbf 1^\top)\vec Y$</td><td>0.152032</td></tr>
+</table></div>
+<p class="note">$\tfrac{1}{n-1}\vec Y^\top\vec Y$ vore rätt om $\vec Y$ innehöll alla $n$ avvikelser. Med $n-1$ komponenter måste kvadrattermen vara med.</p>
+
+<div class="key">
+<p><strong>Skrivfel 2 (s. 31, nederst):</strong> uttrycket för $s^2$ saknar faktorn $\tfrac{1}{n-1}$. Det påverkar inte beviset: allt som behövs är att $s^2$ är <em>någon</em> funktion av $\vec Y$, och $\tfrac{1}{n-1}$ ändrar bara vilken funktion det är. Se steg 6.</p>
+</div>
+
+<h2><span>3</span>$(\bar X, \vec Y)$ är en linjär avbildning av $\vec X$</h2>
+
+<p>Låt $\vec X = (X_1, \dots, X_n)^\top$. Båda delarna är linjära i $\vec X$:</p>
+<ul>
+  <li>$\bar X = A\vec X$ med $A = \big(\tfrac1n \ \ \tfrac1n \ \cdots \ \tfrac1n\big)$, en $1 \times n$-matris.</li>
+  <li>$X_i - \bar X = X_i - \tfrac1n\sum_j X_j$, så rad $i$ i $B$ är $e_i^\top - \tfrac1n\mathbf 1^\top$: $1 - \tfrac1n$ på plats $i$ och $-\tfrac1n$ på alla andra. Med $i = 1, \dots, n-1$ blir $B$ en $(n-1) \times n$-matris och $\vec Y = B\vec X$.</li>
+</ul>
+<p>Staplade på varandra:</p>
+$$\begin{pmatrix}\bar X \\ \vec Y\end{pmatrix} = \underbrace{\begin{pmatrix} A \\ B\end{pmatrix}}_{M\ (n\times n)}\vec X.$$
+
+<p>För $n = 3$ ser det ut så här:</p>
+$$\begin{pmatrix}\bar X \\ X_1 - \bar X \\ X_2 - \bar X\end{pmatrix} =
+\begin{pmatrix} \tfrac13 & \tfrac13 & \tfrac13 \\[2pt] \tfrac23 & -\tfrac13 & -\tfrac13 \\[2pt] -\tfrac13 & \tfrac23 & -\tfrac13 \end{pmatrix}
+\begin{pmatrix}X_1 \\ X_2 \\ X_3\end{pmatrix}.$$
+<p class="note">Lägg märke till den sista kolumnen: den är $-\tfrac13$ i båda $\vec Y$-raderna, eftersom $X_3 - \bar X$ inte är med. Det är exakt mönstret på s. 32.</p>
+
+<p>$M$ är kvadratisk och inverterbar: $|\det M| = 1/n$ (numeriskt $0.333333$, $0.200000$ och $0.100000$ för $n = 3, 5, 10$). Om man i stället tog med alla $n$ avvikelser blir $M$ en $(n+1) \times n$-matris med rang $n$, och kovariansmatrisen för $(\bar X, \vec Y)$ blir singulär. Det är det rena skälet att stanna vid $n - 1$.</p>
+
+<h2><span>4</span>$(\bar X, \vec Y)$ är multivariat normal</h2>
+
+<p>$X_1, \dots, X_n$ är oberoende och normalfördelade, så $\vec X \sim N(\mu\mathbf 1, \sigma^2 I)$. En linjär avbildning av en multivariat normal vektor är multivariat normal:</p>
+$$M\vec X \sim N\big(M\mu\mathbf 1,\ \sigma^2 M M^\top\big).$$
+<p>Alltså är $(\bar X, \vec Y)$ <em>tillsammans</em> multivariat normal. Det är det här steget som kräver att data är normalfördelade.</p>
+
+<h2><span>5</span>Kovariansen mellan $\bar X$ och $\vec Y$ är noll</h2>
+
+<p>Med räknereglen $\text{Cov}(A\vec X, B\vec X) = A\,\text{Cov}(\vec X)\,B^\top$:</p>
+$$\text{Cov}(\bar X, \vec Y) = A(\sigma^2 I)B^\top = \sigma^2 A B^\top.$$
+<p>Element $i$ i $AB^\top$ är $A$ gånger rad $i$ i $B$:</p>
+$$\tfrac1n\mathbf 1^\top\Big(e_i - \tfrac1n\mathbf 1\Big) = \tfrac1n\cdot 1 - \tfrac1n\cdot\tfrac1n\cdot n = \tfrac1n - \tfrac1n = 0.$$
+<p>Med ord: varje rad i $B$ summerar till $\big(1 - \tfrac1n\big) - (n-1)\tfrac1n = 0$, och $A$ gör inget annat än att summera (och dela med $n$). Så</p>
+$$\text{Cov}(\bar X, \vec Y) = (0 \ \ 0 \ \cdots \ 0) \in \mathbb R^{1\times(n-1)}.$$
+<p class="note">Numeriskt: $\max|AB^\top| \approx 10^{-17}$, alltså noll upp till avrundning, för $n = 3, 5, 10$.</p>
+
+<h2><span>6</span>Från noll kovarians till oberoende</h2>
+
+<ol class="steps">
+<li>
+<p><strong>Property 4.</strong> Om en vektor är <em>multivariat normal</em> och kovariansen mellan två delvektorer är noll, så är delvektorerna oberoende. Steg 4 och 5 ger precis detta, alltså</p>
+$$\bar X \perp \vec Y.$$
+</li>
+<li>
+<p><strong>Funktioner av oberoende vektorer är oberoende.</strong> Om $\bar X \perp \vec Y$ så är $\bar X \perp g(\vec Y)$ för varje (mätbar) funktion $g$. Från steg 2 är $s^2 = g(\vec Y)$, alltså</p>
+$$\bar X \perp s^2.$$
+</li>
+</ol>
+
+<div class="key">
+<p><strong>Varför $\tfrac{1}{n-1}$ inte spelar någon roll:</strong> det är inte ett kovariansargument. Oberoendet gäller för <em>hela</em> vektorn $\vec Y$, och då för vilken funktion av den som helst: $\vec Y^\top\vec Y$, $\tfrac{1}{n-1}\big[\vec Y^\top \vec Y + (\mathbf 1^\top\vec Y)^2\big]$, $\max_i Y_i$, … Faktorn $\tfrac{1}{n-1}$ byter bara $g$.</p>
+</div>
+
+<h2><span>7</span>Vanliga missförstånd</h2>
+
+<ul>
+  <li><strong>"$\text{Cov}(\bar X, s^2) = 0$ räcker."</strong> Nej. Noll kovarians ger oberoende bara för variabler som tillsammans är normalfördelade, och $s^2$ är inte normalfördelad (den är $\tfrac{\sigma^2}{n-1}\chi^2_{n-1}$). Därför går beviset via vektorn $\vec Y$, som <em>är</em> normal tillsammans med $\bar X$.</li>
+  <li><strong>"Noll kovarians ger alltid oberoende för normalfördelade variabler."</strong> Bara om de är <em>gemensamt</em> normala. Det är därför steg 4 visar att $(\bar X, \vec Y)$ som helhet är multivariat normal, inte bara att varje komponent är normal.</li>
+  <li><strong>"Resultatet gäller för alla fördelningar."</strong> Nej, normaliteten är avgörande. Simulering med $n = 10$ och $200\,000$ stickprov:</li>
+</ul>
+
+<div class="scroll"><table>
+  <tr><th>Fördelning för $X_i$</th><th>$\text{corr}(\bar X, s^2)$</th></tr>
+  <tr><td>$N(0, 1)$</td><td>+0.0004</td></tr>
+  <tr><td>$\text{Exp}(1)$</td><td>+0.6986</td></tr>
+</table></div>
+<p class="note">För exponentialfördelad data är $\bar X$ och $s^2$ starkt korrelerade (ett stort stickprovsmedel kommer ofta från en stor observation i den högra svansen, som också ger stor spridning). Där är steg 4 falskt: $(\bar X, \vec Y)$ är inte multivariat normal, och noll kovarians mellan $\bar X$ och $\vec Y$ (som gäller även här) räcker inte.</p>
+
+</main>
+</body>
+</html>

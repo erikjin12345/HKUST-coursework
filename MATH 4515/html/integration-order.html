@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Integrationsordning: P(X ≤ Y ≤ 3)</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6860; --rule: #dedbd2;
+    --card: #ffffff; --accent: #9a3b1e; --key: #fdf3e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ebe8e0; --muted: #a09c92; --rule: #34322e;
+      --card: #1f1e1c; --accent: #e8926f; --key: #2a221b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.65 Georgia, "Times New Roman", serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+  nav { font: 0.9rem -apple-system, "Segoe UI", sans-serif; margin-bottom: 28px; }
+  nav a { color: var(--accent); margin-right: 16px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 40px; }
+  h2 { font-size: 1.25rem; margin: 48px 0 12px; padding-top: 20px; border-top: 1px solid var(--rule); }
+  h2 span { color: var(--accent); margin-right: 8px; }
+  .key { background: var(--key); border-left: 3px solid var(--accent); padding: 4px 20px; margin: 20px 0; border-radius: 0 6px 6px 0; }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .scroll { overflow-x: auto; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.93rem; font-family: -apple-system, "Segoe UI", sans-serif; background: var(--card); }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; }
+  code { font-size: 0.9em; }
+  .chain { text-align: center; font-size: 1.1rem; margin: 20px 0; }
+  .chain .arrow { color: var(--muted); margin: 0 12px; }
+  svg text { font: 13px -apple-system, "Segoe UI", sans-serif; fill: var(--fg); }
+  svg .muted { fill: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<nav><a href="index.html">Översikt</a></nav>
+
+<h1>Integrationsordning: $P(X \le Y \le 3)$</h1>
+<p class="sub">L3 part 1, exempel (b). $X, Y$ oberoende $\text{Exp}(1)$ med täthet $f(x,y) = e^{-(x+y)}$, $x, y \ge 0$. Samma sannolikhet räknad med $y$ innerst och med $x$ innerst, varje steg utskrivet. Siffrorna kommer från <code>code/html_checks/integration_order_check.py</code>.</p>
+
+<h2><span>1</span>Området</h2>
+
+<p>Villkoret $X \le Y \le 3$ (och $X \ge 0$) ger triangeln</p>
+$$D = \{(x,y) : 0 \le x \le y \le 3\},$$
+<p>med hörn i $(0,0)$, $(0,3)$ och $(3,3)$: allt <em>ovanför</em> diagonalen $y = x$ och under $y = 3$. Samma triangel kan delas upp i strimlor på två sätt:</p>
+
+<svg viewBox="0 0 640 320" width="100%" style="max-width:640px; display:block; margin: 16px auto;" aria-label="Triangeln med lodräta och vågräta strimlor">
+  <!-- left panel: dy innermost -->
+  <g>
+    <polygon points="40,270 40,30 280,30" fill="#9a3b1e" fill-opacity="0.12" stroke="#9a3b1e" stroke-width="1.5"/>
+    <line x1="40" y1="270" x2="300" y2="270" stroke="currentColor" stroke-opacity="0.5"/>
+    <line x1="40" y1="270" x2="40" y2="15" stroke="currentColor" stroke-opacity="0.5"/>
+    <line x1="40" y1="270" x2="290" y2="20" stroke="currentColor" stroke-opacity="0.35" stroke-dasharray="4 4"/>
+    <rect x="114" y="30" width="12" height="160" fill="#9a3b1e" fill-opacity="0.55"/>
+    <text x="120" y="288" text-anchor="middle">x</text>
+    <text x="132" y="196">y = x</text>
+    <text x="132" y="44">y = 3</text>
+    <text x="280" y="288" text-anchor="middle" class="muted">3</text>
+    <text x="28" y="34" text-anchor="end" class="muted">3</text>
+    <text x="305" y="274" class="muted">x</text>
+    <text x="36" y="12" class="muted">y</text>
+    <text x="160" y="312" text-anchor="middle">dy innerst: x fast, y från x till 3</text>
+  </g>
+  <!-- right panel: dx innermost -->
+  <g transform="translate(320,0)">
+    <polygon points="40,270 40,30 280,30" fill="#9a3b1e" fill-opacity="0.12" stroke="#9a3b1e" stroke-width="1.5"/>
+    <line x1="40" y1="270" x2="300" y2="270" stroke="currentColor" stroke-opacity="0.5"/>
+    <line x1="40" y1="270" x2="40" y2="15" stroke="currentColor" stroke-opacity="0.5"/>
+    <line x1="40" y1="270" x2="290" y2="20" stroke="currentColor" stroke-opacity="0.35" stroke-dasharray="4 4"/>
+    <rect x="40" y="104" width="160" height="12" fill="#9a3b1e" fill-opacity="0.55"/>
+    <text x="28" y="114" text-anchor="end">y</text>
+    <text x="48" y="98">x = 0</text>
+    <text x="206" y="114">x = y</text>
+    <text x="280" y="288" text-anchor="middle" class="muted">3</text>
+    <text x="28" y="34" text-anchor="end" class="muted">3</text>
+    <text x="305" y="274" class="muted">x</text>
+    <text x="36" y="12" class="muted">y</text>
+    <text x="160" y="312" text-anchor="middle">dx innerst: y fast, x från 0 till y</text>
+  </g>
+</svg>
+
+<div class="key">
+<p><strong>Regeln:</strong> den inre integralens gränser får bero på den yttre variabeln; den yttre integralen har alltid konstanta gränser. Villkoret $x \le y$ blir därför</p>
+<ul>
+  <li>en <strong>nedre</strong> gräns för $y$ ($y \ge x$) om $y$ integreras först,</li>
+  <li>en <strong>övre</strong> gräns för $x$ ($x \le y$) om $x$ integreras först (som i föreläsningen).</li>
+</ul>
+</div>
+
+<h2><span>2</span>Med $y$ innerst: $\displaystyle\int_0^3\!\int_x^3 e^{-(x+y)}\,dy\,dx$</h2>
+
+<ol class="steps">
+<li>
+<p><strong>Dela upp integranden.</strong> $x$ är konstant i den inre integralen, så $e^{-x}$ kan brytas ut:</p>
+$$\int_x^3 e^{-(x+y)}\,dy = e^{-x}\int_x^3 e^{-y}\,dy.$$
+</li>
+<li>
+<p><strong>Primitiv funktion.</strong> $\dfrac{d}{dy}\big(-e^{-y}\big) = e^{-y}$, så</p>
+$$e^{-x}\int_x^3 e^{-y}\,dy = e^{-x}\Big[-e^{-y}\Big]_{y=x}^{y=3}.$$
+</li>
+<li>
+<p><strong>Sätt in gränserna: övre minus nedre.</strong></p>
+$$e^{-x}\Big[\underbrace{\big(-e^{-3}\big)}_{y=3} - \underbrace{\big(-e^{-x}\big)}_{y=x}\Big] = e^{-x}\big(-e^{-3} + e^{-x}\big).$$
+<p class="note">Här vänder minustecknet: $-(-e^{-x}) = +e^{-x}$.</p>
+</li>
+<li>
+<p><strong>Multiplicera in $e^{-x}$.</strong></p>
+$$\int_x^3 e^{-(x+y)}\,dy = e^{-2x} - e^{-x-3}.$$
+<p class="note">Kontroll: för $0 \le x < 3$ är $2x < x+3$, så $e^{-2x} > e^{-x-3}$ och den inre integralen är positiv, som den måste vara. Vid $x = 1$: $e^{-2} - e^{-4} = 0.117020$ (numeriskt med <code>quad</code>: $0.117020$).</p>
+</li>
+<li>
+<p><strong>Yttre integralen, term för term.</strong></p>
+$$\int_0^3 e^{-2x}\,dx = \Big[-\tfrac12 e^{-2x}\Big]_0^3 = -\tfrac12 e^{-6} - \big(-\tfrac12\big) = \tfrac12 - \tfrac12 e^{-6},$$
+$$\int_0^3 e^{-x-3}\,dx = e^{-3}\Big[-e^{-x}\Big]_0^3 = e^{-3}\big(-e^{-3} + 1\big) = e^{-3} - e^{-6}.$$
+</li>
+<li>
+<p><strong>Subtrahera.</strong></p>
+$$P(X \le Y \le 3) = \Big(\tfrac12 - \tfrac12 e^{-6}\Big) - \Big(e^{-3} - e^{-6}\Big) = \tfrac12 - e^{-3} + \tfrac12 e^{-6} \approx 0.451452.$$
+</li>
+</ol>
+
+<h2><span>3</span>Med $x$ innerst (föreläsningen): $\displaystyle\int_0^3\!\int_0^y e^{-(x+y)}\,dx\,dy$</h2>
+
+<ol class="steps">
+<li>
+<p><strong>Inre integralen</strong>, $y$ konstant:</p>
+$$\int_0^y e^{-(x+y)}\,dx = \Big[-e^{-(x+y)}\Big]_{x=0}^{x=y} = \underbrace{\big(-e^{-2y}\big)}_{x=y} - \underbrace{\big(-e^{-y}\big)}_{x=0} = e^{-y} - e^{-2y}.$$
+</li>
+<li>
+<p><strong>Yttre integralen.</strong></p>
+$$\int_0^3 \big(e^{-y} - e^{-2y}\big)\,dy = \Big[-e^{-y} + \tfrac12 e^{-2y}\Big]_0^3 = \Big(-e^{-3} + \tfrac12 e^{-6}\Big) - \Big(-1 + \tfrac12\Big) = \tfrac12 - e^{-3} + \tfrac12 e^{-6}.$$
+</li>
+</ol>
+
+<p>Samma svar, som det måste bli: båda ordningarna summerar täthet över samma triangel.</p>
+
+<h2><span>4</span>Varifrån $\tfrac12 e^{-6} - \tfrac12$ kommer</h2>
+
+<p>Det felaktiga svaret är exakt</p>
+$$\int_0^3 \big(-e^{-2x}\big)\,dx = \Big[\tfrac12 e^{-2x}\Big]_0^3 = \tfrac12 e^{-6} - \tfrac12 \approx -0.498761,$$
+<p>alltså vad man får om den inre integralen blir $-e^{-2x}$ i stället för $e^{-2x} - e^{-x-3}$. Två saker har då gått fel i steg 3 ovan:</p>
+<ol>
+  <li>minustecknet vid nedre gränsen har inte vänts ($-e^{-2x}$ i stället för $-(-e^{-2x}) = +e^{-2x}$),</li>
+  <li>termen från övre gränsen, $-e^{-x-3}$, har fallit bort (den försvinner bara om övre gränsen är $\infty$).</li>
+</ol>
+<p class="note">Negativt resultat för en sannolikhet är alltid en signal: integranden $e^{-(x+y)}$ är positiv, så varje inre integral och hela svaret måste vara positiva.</p>
+
+<h2><span>5</span>Numerisk kontroll</h2>
+
+<div class="scroll"><table>
+  <tr><th>Metod</th><th>$P(X \le Y \le 3)$</th></tr>
+  <tr><td>Sluten form $\tfrac12 - e^{-3} + \tfrac12 e^{-6}$</td><td>0.451452</td></tr>
+  <tr><td><code>dblquad</code>, $y$ innerst</td><td>0.451452</td></tr>
+  <tr><td><code>dblquad</code>, $x$ innerst</td><td>0.451452</td></tr>
+  <tr><td>Monte Carlo, $n = 2\cdot 10^6$</td><td>0.451728</td></tr>
+  <tr><td>Felaktigt: $\tfrac12 e^{-6} - \tfrac12$</td><td>−0.498761</td></tr>
+</table></div>
+
+</main>
+</body>
+</html>
